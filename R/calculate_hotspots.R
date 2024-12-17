@@ -1,0 +1,28 @@
+calculate_hotspots <- function(mmm, sst_file) {
+
+  set_hs_zero <- function(x) {
+    x[x < 0] <- 0
+    return(x)
+  }
+
+  set_hs <- function(x) {
+    x[x < 1] <- 0
+    return(x)
+  }
+
+  anomaly_mmm <- sst_file - mmm
+  names(anomaly_mmm) <- terra::time(anomaly_mmm)
+  terra::varnames(anomaly_mmm) <- "mmm_anom"
+
+  hotspots_unset <- terra::app(anomaly_mmm, fun = set_hs_zero)
+  terra::time(hotspots_unset) <- as.Date(terra::time(hotspots_unset), format = "%Y-%m-%d %H:%M:%S")
+  names(hotspots_unset) <- terra::time(hotspots_unset)
+  terra::varnames(hotspots_unset) <- "hs_unset"
+
+  hotspots <- terra::app(anomaly_mmm, fun = set_hs)
+  terra::time(hotspots) <- as.Date(terra::time(anomaly_mmm), format = "%Y-%m-%d %H:%M:%S")
+  names(hotspots) <- as.Date(terra::time(anomaly_mmm), format = "%Y-%m-%d %H:%M:%S")
+  terra::varnames(hotspots) <- "Hotspots"
+
+  return(hotspots)
+}
