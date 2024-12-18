@@ -1,4 +1,4 @@
-# dhw <img align="right" width="250" src="man/figures/logo.png">
+# dhw <img align="right" width="250" src="man/figures/logo2.png">
 
 ### dhw: an R package for calculating various SST metrics (Maximum Monthly Mean Climatology, SST Anomalies, Coral Bleaching HotSpots, Degree Heating Weeks)
 
