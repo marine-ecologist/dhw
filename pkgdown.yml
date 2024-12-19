@@ -1,0 +1,9 @@
+pandoc: 3.1.11
+pkgdown: 2.1.1
+pkgdown_sha: ~
+articles:
+  extracting_data: extracting_data.html
+last_built: 2024-12-19T02:27Z
+urls:
+  reference: https://marine-ecologist.github.io/dhw/reference
+  article: https://marine-ecologist.github.io/dhw/articles
