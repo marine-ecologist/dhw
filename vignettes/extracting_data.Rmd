@@ -1,0 +1,59 @@
+---
+title: "extracting_data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{extracting_data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, eval=FALSE}
+library(dhw)
+```
+
+
+### Extract GBR spatial data
+
+
+```{r, eval=FALSE}
+
+gbr_reefs <- download_gbr_spatial()
+
+```
+
+
+### Extract NOAA CoralTemp spatial data
+
+
+```{r, eval=FALSE}
+
+gbr_reefs <- download_CoralTemp()
+
+```
+
+
+### Extract OISST
+
+
+```{r, eval=FALSE}
+
+gbr_reefs <- download_CoralTemp()
+
+```
+
+
+### Extract ERA5
+
+
+```{r, eval=FALSE}
+
+gbr_reefs <- download_CoralTemp()
+
+```

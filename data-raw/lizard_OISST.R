@@ -1,5 +1,6 @@
-# data-raw/lizard_OISST.R
 ## Script to prepare `lizard_OISST` dataset
+## access with:
+# fpath <- system.file("extdata", "lizard_OISST.tif", package="dhw")
 
 # Load required libraries
 library(dplyr)
@@ -19,7 +20,19 @@ sst_timeseries <- terra::rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST_v2.1.nc"
 lizard_OISST <- sst_timeseries |> terra::crop(grid_point)
 
 # Save the dataset to the `data/` directory in `.rda` format
-usethis::use_data(lizard_OISST, overwrite = TRUE, compress = "bzip2")
+#usethis::use_data(lizard_OISST, overwrite = TRUE, compress = "bzip2")
+
+setGDALconfig("GDAL_PAM_ENABLED", "FALSE")
+setGDALconfig("PRJ", "FALSE")
+
+
+writeRaster(
+  lizard_OISST,
+  filename = "data/lizard_OISST.tif",
+  gdal = c("COMPRESS=DEFLATE", "TFW=NO"),
+  overwrite = TRUE
+)
+
 
 # Print confirmation
 cat("Dataset `lizard_OISST` has been saved successfully.\n")
