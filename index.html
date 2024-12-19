@@ -57,29 +57,17 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="dhw-">dhw <a class="anchor" aria-label="anchor" href="#dhw-"></a>
-</h1>
-</div>
-<div class="section level3">
-<h3 id="dhw-an-r-package-for-calculating-various-sst-metrics-maximum-monthly-mean-climatology-sst-anomalies-coral-bleaching-hotspots-degree-heating-weeks">dhw: an R package for calculating various SST metrics (Maximum Monthly Mean Climatology, SST Anomalies, Coral Bleaching HotSpots, Degree Heating Weeks)<a class="anchor" aria-label="anchor" href="#dhw-an-r-package-for-calculating-various-sst-metrics-maximum-monthly-mean-climatology-sst-anomalies-coral-bleaching-hotspots-degree-heating-weeks"></a>
-</h3>
-<p>The <b>dhw</b> package calculates SST metrics from raw SST datasets by following the methods of the Coral Reef Watch Coral Bleaching Heat Stress Product Suite Version 3.1 (see Skirving et al. 2020 for methods).</p>
-<p>The Degree Heating Weeks product from <a href="https://coralreefwatch.noaa.gov" class="external-link">National Oceanic and Atmospheric Administration’s (NOAA) Coral Reef Watch (CRW) program</a> is calculated from the <a href="https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php" class="external-link">CoralTemp SST product</a>.</p>
-<p>Due to changes in the datasets used by the CRW over the years (see Skirving et al. 2020 for details), the degree heating weeks and other metrics are calculated against a specific climatology (1985–1990 and 1993) to allow for internally consistent anomaly products.</p>
-<p>The <code>dhw</code> package provides a series of functions to recreate the algorithms for the CRW metrics (Maximum Monthly Mean Climatology, SST Anomalies, Coral Bleaching HotSpots, Degree Heating Weeks) using any SST product (e.g., <a href="https://www.ncei.noaa.gov/products/optimum-interpolation-sst" class="external-link">OISST</a>) that spans the baseline period of 1985 to 1993.</p>
-<p>The package is uses the <code>terra</code> package to process the <code>raster</code> data and is (potentially) slower than other R packages (e.g. <code>stars</code>) and very much slower than other alternatives (e.g. <code>cdo</code>) for large datasets. Updated versions of the package will switch to <code>stars</code> spatiotemporal arrays and raster data cubes, and provide alternative functions for <code>cdo</code> to speed up large datasets.</p>
-<p>Also included are a series of functions for visualising SST metrics and functions to reliably download common datasets (e.g. CRW, OISST) via the <a href="http://www.ncei.noaa.gov" class="external-link">NOAA NCEI thredds server</a>.</p>
-<div class="float">
-<img src="https://github.com/user-attachments/assets/1e134f49-22d4-46ae-a208-d7fc18987caa" alt="unnamed-chunk-2-1"><div class="figcaption">unnamed-chunk-2-1</div>
-</div>
+  <main id="main" class="col-md-9"><div class="section level2">
+<h2 id="dhw-an-r-package-for-calculating-various-sst-metrics-maximum-monthly-mean-climatology-sst-anomalies-coral-bleaching-hotspots-degree-heating-weeks">dhw: an R package for calculating various SST metrics (Maximum Monthly Mean Climatology, SST Anomalies, Coral Bleaching HotSpots, Degree Heating Weeks)<a class="anchor" aria-label="anchor" href="#dhw-an-r-package-for-calculating-various-sst-metrics-maximum-monthly-mean-climatology-sst-anomalies-coral-bleaching-hotspots-degree-heating-weeks"></a>
+</h2>
+<p><img align="right" width="250" src="reference/figures/logo2.png"> The <b>dhw</b> package calculates SST metrics from raw SST datasets by following the methods of the Coral Reef Watch Coral Bleaching Heat Stress Product Suite Version 3.1 (see Skirving et al. 2020 for methods). <br><br> The Degree Heating Weeks product from <a href="https://coralreefwatch.noaa.gov" class="external-link">National Oceanic and Atmospheric Administration’s (NOAA) Coral Reef Watch (CRW) program</a> is calculated from the <br><br> Due to changes in the datasets used by the <a href="https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php" class="external-link">CRW</a> over the years (see Skirving et al. 2020 for details), the <a href="https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php" class="external-link">CoralTemp </a> degree heating weeks (and other SST metrics) are calculated against a specific climatology (1985–1990 and 1993) to allow for internally consistent anomaly products. <br><br> The <code>dhw</code> package provides a series of functions to recreate the algorithms for the CRW metrics (Maximum Monthly Mean Climatology, SST Anomalies, Coral Bleaching HotSpots, Degree Heating Weeks) using any SST product (e.g., <a href="https://www.ncei.noaa.gov/products/optimum-interpolation-sst" class="external-link">OISST</a>) that spans the baseline period of 1985 to 1993. <br><br> The package is uses the <code>terra</code> package to process the <code>raster</code> data and is (potentially) slower than other R packages (e.g. <code>stars</code>) and very much slower than other alternatives (e.g. <code>cdo</code>) for large datasets. Updated versions of the package will switch to <code>stars</code> spatiotemporal arrays and raster data cubes, and provide alternative functions for <code>cdo</code> to speed up large datasets. <br><br> Also included are a series of functions for visualising SST metrics and functions to reliably download common datasets (e.g. CRW, OISST) via the <a href="http://www.ncei.noaa.gov" class="external-link">NOAA NCEI thredds server</a>.<br><br><br><img src="https://github.com/user-attachments/assets/1e134f49-22d4-46ae-a208-d7fc18987caa"></p>
 <p>Please file any <a href="https://github.com/marine-ecologist/dhw/issues" class="external-link">issues</a> and comments and suggestions to <a href="mailto:george.roff@csiro.au">george.roff@csiro.au</a>.</p>
 </div>
-</div>
 <div class="section level1">
-<h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h1>
+</div>
 <p>the current development version of <code>dhw</code> can be installed from github:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#install.packages("remotes")</span></span>
