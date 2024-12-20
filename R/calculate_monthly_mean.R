@@ -1,3 +1,16 @@
+#' @name calculate_monthly_mean
+#' @title Create Monthly Mean (MMM)
+#' @description
+#' Function to calculate maximum monthly mean
+#'
+#' See vignette for further details
+#'
+#' @param sst_file sst file
+#' @returns climatology (terra::rast format)
+#'
+#'
+#'
+#' @export
 calculate_monthly_mean <- function(sst_file) {
 
   time_input <- as.Date(terra::time(sst_file))
@@ -8,7 +21,7 @@ calculate_monthly_mean <- function(sst_file) {
   sst_8512 <- terra::subset(sst_file, which(years >= 1985 & years <= 2012))
   years_8512 <- years[years >= 1985 & years <= 2012]
   months_8512 <- months[years >= 1985 & years <= 2012]
-  time_8512 <- terra::time(sst_8512)
+  # time_8512 <- terra::time(sst_8512)
 
   # Initialize a list for monthly climatologies
   mm <- list()
@@ -28,7 +41,7 @@ calculate_monthly_mean <- function(sst_file) {
         if (sum(!is.na(sst_ts)) > 1) {
 
           month_indices <- which(months_8512 == i)
-          sst_month <- terra::subset(sst_8512, month_indices)  # Ensure correct subset
+          # sst_month <- terra::subset(sst_8512, month_indices)  # Ensure correct subset
 
           df <- data.frame(
             sst = sst_ts,

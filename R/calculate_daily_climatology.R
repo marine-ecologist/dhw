@@ -1,19 +1,36 @@
+#' @name calculate_daily_climatology
+#' @title Calculate Daily Climatology
+#' @description
+#' Function to calculate daily climatology
+#'
+#' See vignette for further details
+#'
+#' @param sst_file sst file
+#' @param mm monthly maximums
+#' @returns climatology (terra::rast format)
+#'
+#'
+#' @export
+#'
 calculate_daily_climatology <- function(sst_file, mm) {
-
-  # Ensure time in sst_file is in yyyy-mm-dd format
+  # Ensure time in the sst_file is in Date format
   terra::time(sst_file) <- as.Date(terra::time(sst_file))
 
   # Extract the start and end dates
   start_date <- min(terra::time(sst_file))
   end_date <- max(terra::time(sst_file))
 
-  # Generate monthly time values
+  # Generate monthly time values centered on the 15th of each month
   time_values <- seq(as.Date(format(start_date, "%Y-%m-15")),
                      as.Date(format(end_date, "%Y-%m-15")), by = "month")
 
-  # Repeat the monthly climatology to match the number of years
-  n_repeats <- ceiling(length(time_values) / 12)
-  climatology_rep <- mm[[rep(1:12, length.out = length(time_values))]]
+  # Align monthly climatology to the start of the time range
+  start_month <- as.numeric(format(start_date, "%m"))
+  mm_aligned <- mm[[c(start_month:12, 1:(start_month - 1))]]
+
+  # Repeat the aligned climatology to match the time range
+  # n_repeats <- ceiling(length(time_values) / 12)
+  climatology_rep <- mm_aligned[[rep(1:12, length.out = length(time_values))]]
   terra::time(climatology_rep) <- time_values
 
   # Extract daily dates from sst_file

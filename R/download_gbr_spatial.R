@@ -1,3 +1,25 @@
+#' @name download_gbr_spatial
+#' @title Download GBR spatial data
+#' @description
+#'
+#'
+#' function to download the GBR shape files (14.1mb in size, shp file format) via eReefs
+#'
+#' Notes:
+#' There are several versions of the GBR reefs shape file. This version is downloaded via the eAtlas
+#' Website and includes reefs from the Torres Strait. Default CRS is GDA94 (EPSG:4283)
+#'
+#'
+#' @param crs change the CRS if needed (EPSG:4283 as default)
+#' @returns Simple feature collection with 9612 features and 35 fields
+#' @examples
+#' \dontrun{
+#' eAtlas <- download_gbr_spatial(crs=4326)
+#'}
+#' @export
+
+
+
 download_gbr_spatial <- function(crs = "EPSG:4283") {
   # URL for the spatial data
   url <- "https://nextcloud.eatlas.org.au/s/xQ8neGxxCbgWGSd/download/TS_AIMS_NESP_Torres_Strait_Features_V1b_with_GBR_Features.zip"

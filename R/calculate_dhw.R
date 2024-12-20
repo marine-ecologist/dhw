@@ -1,3 +1,17 @@
+#' @name calculate_dhw
+#' @title Calculate DHW
+#' @description
+#' Function to calculate hotspots
+#'
+#' The function computes the Degree Heating Weeks (DHW) metric, which accumulates heat stress over a specified rolling window (defaulting to 84 days). The function operates by applying a rolling sum on the input hotspots raster data. For each pixel, if the daily hotspot values are greater than or equal to 1, they are summed over the rolling window and divided by 7 to calculate weekly averages using zoo::rollapply. The function returns a raster object with the calculated DHW values, which represent accumulated heat stress.
+#'
+#' See vignette for further details
+#'
+#' @param hotspots hotspots
+#' @param window number of days to sum hotspots, default = 84 (12 weeks)
+#' @returns degree heating weeks (terra::rast format)
+#'
+#' @export
 calculate_dhw <- function(hotspots, window=84) {
 
   calculate_dhw_internal <- function(hs_values) {

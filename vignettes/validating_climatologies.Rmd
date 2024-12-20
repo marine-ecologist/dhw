@@ -1,0 +1,228 @@
+---
+title: "Validating DHW climatologies"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Validating DHW climatologies}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+
+### Climatology baselines
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+The `dhw` package was created to track reproducibility in code while applying the CRW algorithms to additional datasets.
+
+To validate the `create_climatology()` functions, take a spatial subset of the NOAA CoralTemp and the NOAA Daily climatology files for a single pixel (Lizard Island) spanning 1:
+
+(NOAA Climatology available here: [ct5km_climatology_v3.1.nc](https://www.star.nesdis.noaa.gov/pub/sod/mecb/crw/data/5km/v3.1_op/climatology/) - Contains 12 monthly mean SST climatologies for deriving CRW's daily global 5km SST Anomaly product. The maximum pixel-based values from among the 12 monthly mean SST climatologies form the Maximum Monthly Mean (MMM) SST climatology, which is then used to derive CRW's daily global 5km coral bleaching heat stress products)
+
+```{r, message=FALSE}
+
+library(sf)
+library(terra)
+library(tidyverse)
+library(dhw)
+
+
+grid_point <- data.frame(longitude = 145.405, latitude = -14.655) |>
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |>
+  vect() |>
+  buffer(width = 100)
+
+
+CoralTempSST <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/GBR_coraltemp_v3.1_sst.nc") |> crop(grid_point)
+crs(CoralTempSST) <- "EPSG:4283"
+
+CoralTempDailyClimatology <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/ct5km_climatology_v3.1.nc") |> crop(grid_point)
+CoralTempDailyClimatology <- CoralTempDailyClimatology[[2:13]] # select only the MM values
+crs(CoralTempDailyClimatology) <- "EPSG:4283"
+
+
+```
+
+From the CoralTemp data, run `create_climatology()` to generate SST, Daily Climatologies, MM, MMM, SSTA, HS, DHW:
+
+```{r}
+
+test_SST <- create_climatology(CoralTempSST)
+
+```
+
+Comparing the two datasets, June - December mostly match, but MM derived from the `create_climatology()` for Jan-May are (slightly) inconsistent with the NOAA baseline: 
+
+```{r}
+
+data.frame(month=month.abb, 
+           dhw_library_mm = values(test_SST$mm) |> as.numeric() |> round(2),
+           NOAA_mmm = values(CoralTempDailyClimatology) |> as.numeric())
+
+plot2(test_SST$mm, CoralTempDailyClimatology)
+
+```
+
+
+AFAIK this difference is due to the NOAA calculation of their Daily Climatologies, which are based on the full SST Timeseries (1985-01-01 to 2012-12-31), while CoralTemp is only available 1985-06-01 to 2012-12-31.
+
+To test this, we can substitute the CoralTempDailyClimatology back into the climatology calculations. First download the complete NOAA dataset for a subset of time (2015-2017) for all variables (`sst`, `ssta`, `hs`, `dhw`):
+
+```{r, eval=FALSE}
+
+library(rerddap)
+
+NOAA_CRW_a <- griddap(
+    datasetx = 'NOAA_DHW',
+    time = c("2015-01-01", "2018-01-01"),
+    latitude = c(-14.655, -14.655),
+    longitude = c(145.405, 145.405),
+    #fields = c('CRW_SST', 'CRW_SSTANOMALY', 'CRW_HOTSPOT', 'CRW_DHW'),
+    fmt = "csv"
+  )
+
+NOAA_CRW_b <- griddap(
+    datasetx = 'NOAA_DHW',
+    time = c("2018-01-01", "2021-01-01"),
+    latitude = c(-14.655, -14.655),
+    longitude = c(145.405, 145.405),
+    #fields = c('CRW_SST', 'CRW_SSTANOMALY', 'CRW_HOTSPOT', 'CRW_DHW'),
+    fmt = "csv"
+  )
+
+NOAA_CRW_c <- griddap(
+    datasetx = 'NOAA_DHW',
+    time = c("2021-01-01", "2024-05-15"),
+    latitude = c(-14.655, -14.655),
+    longitude = c(145.405, 145.405),
+    #fields = c('CRW_SST', 'CRW_SSTANOMALY', 'CRW_HOTSPOT', 'CRW_DHW'),
+    fmt = "csv"
+  )
+
+NOAA_CRW <- rbind(NOAA_CRW_a, NOAA_CRW_b, NOAA_CRW_c)
+
+#usethis::use_data(NOAA_CRW, overwrite=TRUE)
+
+
+```
+
+
+To compare this subset, run the individual components of the `create_climatology()` except replace the `calculated_mm` with the NOAA CRW `CoralTempDailyClimatology` amd visualise the data:
+
+
+```{r, fig.width=9, fig.height=9}
+
+
+
+calculated_mm <- calculate_monthly_mean(sst_file = CoralTempSST)
+calculated_mmm <- calculate_maximum_monthly_mean(mm = CoralTempDailyClimatology)
+calculated_dc <- calculate_daily_climatology(sst_file = CoralTempSST, mm = CoralTempDailyClimatology)
+calculated_anomalies <- calculate_anomalies(sst_file = CoralTempSST, climatology = calculated_dc)
+calculated_hotspots <- calculate_hotspots(mmm = calculated_mmm, sst_file = CoralTempSST)
+calculated_dhw <- calculate_dhw(hotspots = calculated_hotspots)
+calculated_baa <- calculate_baa(hotspots = calculated_hotspots, dhw = calculated_dhw)
+
+
+# convert to df
+calculated_sst <- CoralTempSST |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> rename(calculated_SST=values) |> 
+  filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+calculated_dc <- calculated_dc |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> rename(calculated_DC=values) |> 
+  filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+calculated_anomalies <- calculated_anomalies |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> rename(calculated_SSTA=values) |> 
+  filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+calculated_hotspots <- calculated_hotspots |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> rename(calculated_HS=values) |> 
+  filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+calculated_dhw <- calculated_dhw |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> rename(calculated_DHW=values) |> 
+  filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+calculated_baa <- calculated_baa |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> rename(calculated_BAA=values) |> 
+  filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+
+daily_climatology_plot <- ggplot() + theme_bw() + 
+  geom_line(data=calculated_sst, aes(time,calculated_SST), color="grey") +
+  geom_line(data = calculated_dc, aes(time, calculated_DC), color="blue") +
+  geom_hline(yintercept=values(calculated_mmm) |> as.numeric(), color="red")  +
+  ylab("SST")
+
+library(patchwork)
+
+daily_anomalies_plot <- ggplot() + theme_bw() + 
+  geom_line(data=calculated_anomalies, aes(time, calculated_SSTA)) +
+  ylab("SST Anomalies")
+
+daily_hs_plot <- ggplot() + theme_bw() + 
+  geom_line(data = calculated_hotspots, aes(time, calculated_HS)) +
+  ylab("Hotspots")
+
+daily_dhw_plot <- ggplot() + theme_bw() + 
+  geom_line(data=calculated_dhw, aes(time, calculated_DHW)) +
+  ylab("Degree Heating Weeks")
+
+
+daily_baa_plot <- ggplot() + theme_bw() + 
+  geom_line(data=calculated_baa, aes(time, calculated_BAA)) +
+  ylab("Bleaching Alert Area")
+
+(daily_climatology_plot / daily_anomalies_plot / daily_hs_plot / daily_dhw_plot / daily_baa_plot)
+
+```
+Third, compare the calculated climatology values for `sst`, `ssta`, `hs`, `dhw` with the original downloaded NOAA `.nc` file to validate the method:
+
+
+```{r, fig.width=9, fig.height=6}
+
+NOAA_data <- NOAA_CRW_data |> dplyr::select(time, CRW_SST, CRW_SSTANOMALY, CRW_HOTSPOT, CRW_DHW, CRW_BAA) |> 
+  mutate(time=as.Date(time)) |> 
+  rename(NOAA_SST = CRW_SST,
+         NOAA_SSTA = CRW_SSTANOMALY,
+         NOAA_HS = CRW_HOTSPOT,
+         NOAA_DHW = CRW_DHW,
+         NOAA_BAA = CRW_BAA) |> 
+  mutate(NOAA_HS = ifelse(NOAA_HS < 1, 0, NOAA_HS)) #|> 
+  #mutate(NOAA_DHW = ifelse(NOAA_DHW == 0, NA, NOAA_DHW))
+         
+
+# DHW
+calculated_data <- 
+  left_join(calculated_sst, calculated_anomalies, by = join_by(time)) %>% 
+  left_join(., calculated_hotspots, by = join_by(time)) %>% 
+  left_join(., calculated_dhw, by = join_by(time)) %>% 
+  left_join(., calculated_baa, by = join_by(time)) |> 
+  filter(time %in% NOAA_data$time) |> 
+  select(time, calculated_SST, calculated_SSTA, calculated_HS, calculated_DHW, calculated_BAA)
+  
+
+combined_data <- left_join(calculated_data, NOAA_data, by = join_by(time))
+
+
+calibrated_plot_SST <- ggplot() + theme_bw() +
+  geom_point(data=combined_data, aes(NOAA_SST, calculated_SST), color="indianred1") +
+  geom_abline()
+
+calibrated_plot_SSTA <- ggplot() + theme_bw() +
+  geom_point(data=combined_data, aes(NOAA_SSTA, calculated_SSTA), color="khaki3") +
+  geom_abline()
+
+calibrated_plot_HS <- ggplot() + theme_bw() +
+  geom_point(data=combined_data, aes(NOAA_HS, calculated_HS), color="turquoise") +
+  geom_abline()
+
+calibrated_plot_DHW <- ggplot() + theme_bw() +
+  geom_point(data=combined_data, aes(NOAA_DHW, calculated_DHW), color="lightseagreen") +
+  geom_abline()
+
+
+calibrated_plot_BAA <- ggplot() + theme_bw() +
+  geom_point(data=combined_data, aes(NOAA_DHW, calculated_DHW), color="purple") +
+  geom_abline()
+
+(calibrated_plot_SST | calibrated_plot_SSTA) / 
+  (calibrated_plot_HS | calibrated_plot_DHW) / 
+  (calibrated_plot_BAA | wrap_elements(grid::textGrob('')))
+```

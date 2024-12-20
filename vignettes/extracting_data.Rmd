@@ -1,8 +1,8 @@
 ---
-title: "extracting_data"
+title: "Extracting SST and spatial data"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{extracting_data}
+  %\VignetteIndexEntry{Extracting SST and spatial data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,13 +14,19 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, eval=FALSE}
+```{r}
 library(dhw)
 ```
 
-
 ### Extract GBR spatial data
 
+Use this function to download the GBR Reefs dataset via eAtlas. Several versions of the GBRMPA shp file exist, this version from eAtlas include the Torres Straits:
+
+> This dataset consists of a shapefile of the reefs, islands, sand banks, cays and rocks of the whole Great Barrier Reef (GBR) including Torres Strait. This dataset is an extension of the mapping in the GBR Marine Park to include Torres Strait. The Torres Strait region was mapped at a scale of 1:50,000 (Lawrey, E. P., Stewart M., 2016) and these new features are referred to as the "Torres Strait Reef and Island Features" dataset. The Complete GBR Reef and Island Features dataset integrates the "Torres Strait Reef and Island Features" dataset with the existing "GBR Features" (Great Barrier Reef Marine Park Authority, 2007) to create a single composite dataset of the whole Great Barrier Reef.
+
+for metadata see here:
+
+[Complete Great Barrier Reef (GBR) Island and Reef Feature boundaries including Torres Strait Version 1b (NESP TWQ 3.13, AIMS, TSRA, GBRMPA)](https://researchdata.edu.au/complete-great-barrier-tsra-gbrmpa/675397)
 
 ```{r, eval=FALSE}
 
@@ -28,29 +34,27 @@ gbr_reefs <- download_gbr_spatial()
 
 ```
 
+### Downloading and extracting SST data
+
+There are multiple ways to download SST data for calculations. [ERDAPP](https://www.ncei.noaa.gov/erddap/) via the `rerdapp` library are useful for smaller requests, but downloading long-time series of global datasets can result in signficant timeouts. Below are three functiions for downloading CRW, OISST, and ERA5 datasets:
 
 ### Extract NOAA CoralTemp spatial data
 
-
 ```{r, eval=FALSE}
 
 gbr_reefs <- download_CoralTemp()
 
 ```
-
 
 ### Extract OISST
 
-
 ```{r, eval=FALSE}
 
 gbr_reefs <- download_CoralTemp()
 
 ```
 
-
 ### Extract ERA5
-
 
 ```{r, eval=FALSE}
 

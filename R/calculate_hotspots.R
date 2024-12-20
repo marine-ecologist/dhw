@@ -1,3 +1,17 @@
+#' @name calculate_hotspots
+#' @title Calculate hotspots
+#' @description
+#' Function to calculate hotspots
+#'
+#' See vignette for further details
+#'
+#' @param mmm maximum monthly mean
+#' @param sst_file sst file
+#' @returns daily hotpsots (terra::rast format)
+#'
+#'
+#'
+#' @export
 calculate_hotspots <- function(mmm, sst_file) {
 
   set_hs_zero <- function(x) {
