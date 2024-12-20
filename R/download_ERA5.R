@@ -1,16 +1,28 @@
-
-
-
-# ERA5 is the fifth generation ECMWF atmospheric reanalysis of the global climate covering the period from January 1940 to present.
-# ERA5 is produced by the Copernicus Climate Change Service (C3S) at ECMWF.
-# ERA5 provides hourly estimates of a large number of atmospheric, land and oceanic climate variables.
-# The data cover the Earth on a 31km grid and resolve the atmosphere using 137 levels from the surface up to a height of 80km.
-# ERA5 includes information about uncertainties for all variables at reduced spatial and temporal resolutions.
-
+#' @name download_ERA5
+#' @title Download ERA5 data
+#' @description
+#' Function to download and save NetCDF files for OISST
+#' `download_ERA5()` is a function to download ERA5 SST data
+#'
+#' Notes:
+#' ERA5 is the fifth generation ECMWF atmospheric reanalysis of the global climate covering the period from January 1940 to present.
 # https://www.ecmwf.int/en/forecasts/dataset/ecmwf-reanalysis-v5
 
-# Function to download and save NetCDF files for OISST
-download_ERA5 <- function(start_year = 1981, end_year = 2022, ecmwfr_key, timeout, output_dir) {
+#'
+#' @param start_year start year
+#' @param end_year end year
+#' @param ecmwfr_key required ecmfr key, see notes below
+#' @param dest_dir save file location
+#' @param timeout set a timeout for downloading (minutes)
+#' @returns downloaded nc files to specified location
+#' @examples
+#' \dontrun{
+#' download_ERA5(1990, 2020, key, 60, "/users/era5/")
+#'}
+#' @export
+
+
+download_ERA5 <- function(start_year = 1981, end_year = 2022, ecmwfr_key, timeout, dest_dir) {
   ecmwfr::wf_set_key(key = ecmwfr_key)
 
 
@@ -33,7 +45,9 @@ download_ERA5 <- function(start_year = 1981, end_year = 2022, ecmwfr_key, timeou
       request  = request,
       transfer = TRUE,
       time_out = timeout, # time out (secs)
-      path     = output_dir
+      path     = dest_dir
     )
+
+    file
   }
 }

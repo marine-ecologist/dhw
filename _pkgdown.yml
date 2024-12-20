@@ -1,4 +1,89 @@
 url: https://marine-ecologist.github.io/dhw/
+
+authors:
+  George Roff:
+    href: https://github.com/marine.ecologist/
+
 template:
   bootstrap: 5
+  math-rendering: mathjax
+  light-switch: true
 
+navbar:
+  structure:
+    left:
+    - intro
+    - reference
+    - articles
+    - tutorials
+    - news
+    right:
+    - search
+    - github
+    - lightswitch
+  components:
+    reference:
+      text: Reference
+      href: reference/index.html
+    search:
+      search: []
+    lightswitch:
+      icon: fa-sun
+      aria-label: Light switch
+      id: lightswitch
+      menu:
+      - text: Light
+        theme: light
+        icon: fa-sun
+      - text: Dark
+        theme: dark
+        icon: fa-moon
+      - text: Auto
+        theme: auto
+        icon: fa-adjust
+    articles:
+      text: Articles
+      menu:
+      - text: 1. SST Metrics
+      - text: Calculating Degree Heating Weeks
+        href: articles/calculating_climatologies.html
+      - text: 2. Reprocible Code
+      - text: Validating DHW climatologies
+        href: articles/validating_climatologies.html
+      - text: 3. Extracting and visualising data
+      - text: Downloading SST and spatial data
+        href: articles/extracting_data.html
+
+reference:
+- title: Climatologies and SST Metrics
+  contents:
+  - create_climatology
+  - calculate_monthly_mean
+  - calculate_maximum_monthly_mean
+  - calculate_daily_climatology
+  - calculate_anomalies
+  - calculate_hotspots
+  - calculate_dhw
+  - calculate_baa
+- title: Download data
+  contents:
+  - download_CoralTemp
+  - download_ERA5
+  - download_OISST
+  - download_gbr_spatial
+- title: Visualise data
+  contents:
+  - plot_year
+  - plot2
+- title: Source data
+  contents:
+  - NOAA_CRW_data
+
+
+articles:
+- title: All vignettes
+  desc: ~
+  contents:
+  - calculating_climatologies
+  - extracting_data
+  - validating_climatologies

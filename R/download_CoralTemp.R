@@ -1,13 +1,33 @@
+#' @name download_CoralTemp
+#' @title Download CoralTemp data
+#' @description
+#'
+#' Function to download and save NetCDF files for CoralTemp
+#' `download_CoralTemp()` is a function to download NOAA CRW data
+#'
+#' If the number of cores is set to >1, the function uses `mclapply` to parallel download datasets, else 1 = single downloads.
+#'
+#' Notes:
+#' The NOAA Coral Reef Watch (CRW) daily global 5km Sea Surface Temperature (SST) product, also known as CoralTemp,
+#' shows the nighttime ocean temperature measured at the surface. The CoralTemp SST data product was developed from
+#' two, related reanalysis (reprocessed) SST products and a near real-time SST product. Spanning January 1, 1985
+#' to the present, the CoralTemp SST is one of the best and most internally consistent daily global 5km SST products available.
+#'
+#` https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php
+#'
+#' @param url one of the NOAA thredds url
+#' @param start_date end year
+#' @param end_date end year
+#' @param dest_dir save file location
+#' @param variable one of 'sst', 'ssta', 'hs', 'dhw'
+#' @param mc.cores set the number of cores
+#' @returns downloaded nc files to specified location
+#' @examples
+#' \dontrun{
+#' download_CoralTemp(1990, 2020, "/users/era5/", variable= "ssta", cores=10)
+#'}
+#' @export
 
-
-# https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php
-
-# The NOAA Coral Reef Watch (CRW) daily global 5km Sea Surface Temperature (SST) product, also known as CoralTemp,
-# shows the nighttime ocean temperature measured at the surface. The SST scale ranges from -2 to 35 °C.
-
-# The CoralTemp SST data product was developed from two, related reanalysis (reprocessed) SST products and a near
-# real-time SST product. Spanning January 1, 1985 to the present, the CoralTemp SST is one of the best and most
-# internally consistent daily global 5km SST products available.
 
 download_CoralTemp <- function(url = "https://www.ncei.noaa.gov/thredds-ocean/catalog/crw/5km/v3.1/nc/v1.0/daily", start_date, end_date, dest_dir, variable = "hs", mc.cores = 1) {
 

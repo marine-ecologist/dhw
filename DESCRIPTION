@@ -1,16 +1,20 @@
 Package: dhw
-Title: What the Package Does (One Line, Title Case)
+Title: A Package for Calculating Degree Heating Weeks and other SST Metrics
 Version: 0.0.0.9001
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+    person("George", "Roff", , "george.roff@csiro.au", role = c("aut", "cre"))
+Description: Calculates various SST metrics (Degree Heating Weeks, SST Anomalies, HotSpots, Mean Monthly Maximum) from daily SST sources following the NOAA Coral Reef Watch (CRW) methodology (https://coralreefwatch.noaa.gov for details)
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
+    dplyr,
+    ecmwfr,
+    ggplot2,
     graphics,
     httr,
+    sf,
     terra,
     utils,
     zoo
@@ -19,6 +23,8 @@ Depends:
 LazyData: true
 Suggests: 
     knitr,
-    rmarkdown
+    patchwork,
+    rmarkdown,
+    tidyverse
 VignetteBuilder: knitr
 URL: https://marine-ecologist.github.io/dhw/
