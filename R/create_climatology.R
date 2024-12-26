@@ -24,7 +24,7 @@
 #' }
 #' @export
 
-create_climatology <- function(sst_file, window = 84, quiet = FALSE){
+create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa=FALSE){
 
   cat("--- create_climatology ---\n")
 
@@ -86,6 +86,7 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE){
 
   names(sst_file) <- terra::time(sst_file)
 
+  if (!quiet) {
   base::list(
     sst = sst_file,
     mm = mm,
@@ -95,5 +96,19 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE){
     hotspots = hotspots,
     dhw = dhw,
     baa = baa
-  )
+    )
+    } else {
+    base::list(
+      sst = sst_file,
+      mm = mm,
+      mmm = mmm,
+      climatology = daily_climatology,
+      anomaly = anomaly,
+      hotspots = hotspots,
+      dhw = dhw,
+      baa = baa
+    )
+  }
+
+    print_elapsed_time("Combining outputs")
 }
