@@ -14,8 +14,13 @@
 calculate_anomalies <- function(sst_file, climatology) {
 
   anomaly <- sst_file - climatology
+
+  anomaly <- lapp(sds(list(sst_file, climatology)),
+       fun = function(r1, r2) { return( r1 - r2) })
+
   terra::varnames(anomaly) <- "SST Anomalies"
   terra::time(anomaly) <- terra::time(sst_file)
+  names(anomaly) <- as.Date(terra::time(anomaly))
 
   return(anomaly)
 }

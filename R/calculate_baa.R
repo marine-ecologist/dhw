@@ -28,24 +28,29 @@
 #'
 calculate_baa <- function(hotspots, dhw) {
 
-  hotspotdhw <- sds(hotspots, dhw)
+  hotspotdhw <- sds(calculated_hotspots, calculated_dhw)
 
   categorize_baa <- function(hs, dhw) {
-    ifelse(
-      hs <= 0, 0,  # No Stress
-      ifelse(hs > 0 & dhw < 4, 1,  # Bleaching Watch
-             ifelse(hs >= 1 & dhw >= 4 & dhw < 8, 2,  # Bleaching Warning
-                    ifelse(hs >= 1 & dhw >= 8 & dhw < 12, 3,  # Bleaching Alert Level 1
-                           ifelse(hs >= 1 & dhw >= 12 & dhw < 16, 4,  # Bleaching Alert Level 2
-                                  ifelse(hs >= 1 & dhw >= 16 & dhw < 20, 5,  # Bleaching Alert Level 3
-                                         ifelse(hs >= 1 & dhw >= 20, 6, NA)  # Bleaching Alert Level 4
-                                  )
-                           )
-                    )
-             )
-      )
-    )
+  if (hs == 0) {
+    return(0)  # No Stress
+  } else if (hs < 1 & dhw == 0) {
+    return(1)  # Bleaching Watch
+  } else if (hs > 1 & dhw < 4) {
+    return(2)  # Bleaching Watch
+  } else if (hs >= 1 & dhw >= 4 & dhw < 8) {
+    return(3)  # Bleaching Warning
+  } else if (hs >= 1 & dhw >= 8 & dhw < 12) {
+    return(4)  # Bleaching Alert Level 1
+  } else if (hs >= 1 & dhw >= 12 & dhw < 16) {
+    return(5)  # Bleaching Alert Level 2
+  } else if (hs >= 1 & dhw >= 16 & dhw < 20) {
+    return(6)  # Bleaching Alert Level 3
+  } else if (hs >= 1 & dhw >= 20) {
+    return(7)  # Bleaching Alert Level 5
+  } else {
+    return(NA) # Missing or undefined case
   }
+}
 
 
   baa <- terra::app(
