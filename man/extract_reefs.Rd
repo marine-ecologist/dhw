@@ -2,7 +2,7 @@
 % Please edit documentation in R/extract_reefs.R, R/process_ERA5.R
 \name{extract_reefs}
 \alias{extract_reefs}
-\alias{process_era5}
+\alias{process_ERA5}
 \title{Extract reef}
 \usage{
 extract_reefs(
@@ -13,7 +13,7 @@ extract_reefs(
   quiet = FALSE
 )
 
-process_era5(folder, units = "celsius")
+process_ERA5(folder, units = "celsius")
 }
 \arguments{
 \item{input}{input}
@@ -25,11 +25,15 @@ process_era5(folder, units = "celsius")
 \item{extract_fun}{= "weighted_mean" by default}
 
 \item{quiet}{show verbose}
+
+\item{folder}{folder with nc files}
+
+\item{units}{one of "celsius", "kelvin"}
 }
 \value{
 shp file sf with SST details (see above for details)
 
-shp file sf with SST details (see above for details)
+combined ERA5 rast format
 }
 \description{
 Function to extract sst data for shp file overlay

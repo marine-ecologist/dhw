@@ -6,12 +6,9 @@
 #'
 #' See vignette for further details
 #'
-#' @param input input
-#' @param output output format, sf default
-#' @param shpfile location of shpfile mask
-#' @param extract_fun = "weighted_mean" by default
-#' @param quiet show verbose
-#' @returns shp file sf with SST details (see above for details)
+#' @param folder folder with nc files
+#' @param units one of "celsius", "kelvin"
+#' @returns combined ERA5 rast format
 #' @examples
 #' \dontrun{
 #'
@@ -19,15 +16,22 @@
 #' }
 #' @export
 
-process_era5 <- function(folder, units="celsius") {
+process_ERA5 <- function(folder, units="celsius") {
+
+
+  # Extract years from filenames assuming format "ecmwfr-YYYY.nc"
+  files <- list.files(folder, full.names = FALSE)
+  files <- sort(files)
+
 
   # Initialize combined raster
   ecmwfr_combined <- NULL
 
   # Loop through years and read NetCDF files
-  for (i in 1940:2024) {
-#   nc_file <- paste0d("/Users/rof011/GBR-dhw/datasets/era5/ecmwfr-", i, ".nc")
-    nc_file <- paste0(folder, "ecmwfr-", i, ".nc")
+  for (i in length(files)) {
+#   nc_file <- paste0("/Users/rof011/GBR-dhw/datasets/era5/ecmwfr-", i, ".nc")
+    nc_file <- paste0(folder, files[i])
+    print(nc_file)
     # Open NetCDF file
     nc <- ncdf4::nc_open(nc_file)
     time <- ncdf4::ncvar_get(nc, "valid_time")
@@ -46,6 +50,7 @@ process_era5 <- function(folder, units="celsius") {
 
     # Assign time to the raster
     terra::time(rastfile) <- as.Date(time)
+    names(rastfile) <- as.Date(time)
 
     if (units=="celsius") {
       rastfile <- rastfile - 273.15  # This applies the conversion to all layers
