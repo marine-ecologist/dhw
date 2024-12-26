@@ -59,33 +59,31 @@ download_gbr_spatial <- function(crs = "EPSG:4283", reefs) {
 
   if (reefs=="combined"){
 
-    gbr_files <- gbr_shape |> st_transform(4283)
+    gbr_files <- gbr_shape |> sf::st_transform(4283)
     gbr_files$LABEL_ID_FULL <- gbr_files$LABEL_ID
     gbr_files$LABEL_ID <- stringr::str_extract(gbr_files$LABEL_ID_FULL, "^\\d{2}-\\d{3}")
 
     label_ids <- gbr_files |>
-      filter(FEAT_NAME %in% c("Reef", "Terestrial Reef")) |>
+      dplyr::filter(FEAT_NAME %in% c("Reef", "Terestrial Reef")) |>
       as.data.frame() |>
-      select(LABEL_ID, GBR_NAME) |>
-      group_by(LABEL_ID) |>
-      filter(row_number() == 1)
-    #filter(GBR_NAME==first(GBR_NAME))
-
+      dplyr::select(LABEL_ID, GBR_NAME) |>
+      dplyr::group_by(LABEL_ID) |>
+      dplyr::filter(row_number() == 1)
 
     gbr_shape <- gbr_files |>
-      filter(FEAT_NAME %in% c("Reef", "Terestrial Reef")) |>
-      st_make_valid() |>
-      group_by(LABEL_ID) |>
-      summarize(geometry = st_union(geometry)) |>
-      ungroup() |>
-      left_join(label_ids, by="LABEL_ID") %>%
-      mutate(area = st_area(.))
+      dplyr::filter(FEAT_NAME %in% c("Reef", "Terestrial Reef")) |>
+      sf::st_make_valid() |>
+      dplyr::group_by(LABEL_ID) |>
+      dplyr::summarize(geometry = sf::st_union(geometry)) |>
+      dplyr::ungroup() |>
+      dplyr::left_join(label_ids, by="LABEL_ID") %>%
+      dplyr::mutate(area = sf::st_area(.))
 
     return(gbr_shape)
 
-  } else {
+  } else if (!reefs=="combined"){
 
-  return(gbr_shape)
+    return(gbr_shape)
 
   }
 

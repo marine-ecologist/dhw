@@ -23,13 +23,16 @@
 
 extract_reefs <- function(input, shpfile,  output = "sf", extract_fun = "weighted_mean", quiet=FALSE) {
 
-
-    rasterfile <- terra::project(input, sf::st_crs(shpfile)$wkt)
-    time_steps <- terra::time(rasterfile)
+    input <- terra::project(input, sf::st_crs(shpfile)$wkt)
+    time_steps <- terra::time(input)
 
     if (is.null(time_steps)) {
       stop("Time information is missing from the raster")
     }
+
+    # if (!crs(input) == st_crs(st_read(shpfile))$wkt) {
+    #   stop("raster crs differs from the shpfile crs")
+    # }
 
 
     if (!quiet) {
