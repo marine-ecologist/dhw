@@ -1,39 +1,37 @@
-
-#' @name extract_reefs
-#' @title Extract reef
+#' @name process_ERA5
+#' @title Process ERA5 NetCDF Files
 #' @description
-#' Function to extract sst data for shp file overlay
+#' Function to extract and combine SST data from NetCDF files in a specified folder.
 #'
-#' See vignette for further details
+#' See vignette for further details.
 #'
-#' @param folder folder with nc files
-#' @param units one of "celsius", "kelvin"
-#' @returns combined ERA5 rast format
+#' @param folder Folder containing NetCDF (.nc) files.
+#' @param units Units for temperature: one of "celsius" or "kelvin". Default is "celsius".
+#' @return A combined SpatRaster object in ERA5 format.
 #' @examples
 #' \dontrun{
-#'
-# folder = "/Users/rof011/GBR-dhw/datasets/era5/
+#' folder <- "/Users/rof011/GBR-dhw/datasets/era5/"
+#' process_ERA5(folder, units = "celsius")
 #' }
 #' @export
 
-process_ERA5 <- function(folder, units="celsius") {
+process_ERA5 <- function(folder, units = "celsius") {
 
+  # List all NetCDF files in the folder
+  files <- list.files(folder, pattern = "\\.nc$", full.names = TRUE)
 
-  # Extract years from filenames assuming format "ecmwfr-YYYY.nc"
-  files <- list.files(folder, full.names = FALSE)
+  # Sort files by name to ensure correct order
   files <- sort(files)
-
 
   # Initialize combined raster
   ecmwfr_combined <- NULL
 
-  # Loop through years and read NetCDF files
-  for (i in length(files)) {
-#   nc_file <- paste0("/Users/rof011/GBR-dhw/datasets/era5/ecmwfr-", i, ".nc")
-    nc_file <- paste0(folder, files[i])
-    print(nc_file)
+  # Loop through each file and process it
+  for (file in files) {
     # Open NetCDF file
-    nc <- ncdf4::nc_open(nc_file)
+    nc <- ncdf4::nc_open(file)
+
+    # Extract time variable
     time <- ncdf4::ncvar_get(nc, "valid_time")
 
     # Handle time conversion
@@ -46,14 +44,15 @@ process_ERA5 <- function(folder, units="celsius") {
     ncdf4::nc_close(nc)
 
     # Load raster data
-    rastfile <- terra::rast(nc_file)
+    rastfile <- terra::rast(file)
 
-    # Assign time to the raster
+    # Assign time to raster layers
     terra::time(rastfile) <- as.Date(time)
     names(rastfile) <- as.Date(time)
 
-    if (units=="celsius") {
-      rastfile <- rastfile - 273.15  # This applies the conversion to all layers
+    # Convert units if required
+    if (units == "celsius") {
+      rastfile <- rastfile - 273.15  # Convert Kelvin to Celsius
     }
 
     # Combine raster data
@@ -64,6 +63,6 @@ process_ERA5 <- function(folder, units="celsius") {
     }
   }
 
+  # Return the combined raster
   return(ecmwfr_combined)
-
 }
