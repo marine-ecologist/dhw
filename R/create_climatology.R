@@ -60,8 +60,6 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE){
 
   anomaly <- calculate_anomalies(sst_file, daily_climatology)
 
-
-
   if (!quiet) {
     print_elapsed_time("Processing HotSpots (HS)")
   }
