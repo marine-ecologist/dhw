@@ -51,7 +51,7 @@ extract_reefs <- function(input, shpfile,  output = "sf", extract_fun = "weighte
       shpfile |>
         mutate(
           date = rep(time(input[[i]]), nrow(shpfile)),
-          sst = exact_extract(input[[i]], shpfile, progress = FALSE, fun = "weighted_mean", weights = "area")
+          sst = exactextractr::exact_extract(input[[i]], shpfile, progress = FALSE, fun = "weighted_mean", weights = "area")
         )
 
     }
