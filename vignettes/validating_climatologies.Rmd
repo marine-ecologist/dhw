@@ -56,14 +56,14 @@ grid_point <- data.frame(longitude = 145.405, latitude = -14.655) |>
   buffer(width = 0.001)
 
 
-CoralTempSST <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/GBR_coraltemp_v3.1_sst.nc") |> 
-  crop(grid_point) |> 
+CoralTempSST <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/GBR_coraltemp_v3.1_sst.nc") %>% 
+  crop(., grid_point) |> 
   project("EPSG:4283")
 
 
-CoralTempDailyClimatology <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/ct5km_climatology_v3.1.nc") |> 
+CoralTempDailyClimatology <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/ct5km_climatology_v3.1.nc") %>% 
+  crop(., grid_point) |> 
   select(2:13) |> 
-  crop(grid_point) |> 
   project("EPSG:4283")
 
 

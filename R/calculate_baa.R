@@ -28,7 +28,7 @@
 #'
 calculate_baa <- function(hotspots, dhw) {
 
-  hotspotdhw <- sds(calculated_hotspots, calculated_dhw)
+  hotspotdhw <- sds(hotspots, dhw)
 
   categorize_baa <- function(hs, dhw) {
   if (hs == 0) {
