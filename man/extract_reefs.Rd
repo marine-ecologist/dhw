@@ -6,8 +6,8 @@
 \usage{
 extract_reefs(
   input,
-  output = "sf",
   shpfile,
+  output = "sf",
   extract_fun = "weighted_mean",
   quiet = FALSE
 )
@@ -15,9 +15,9 @@ extract_reefs(
 \arguments{
 \item{input}{input}
 
-\item{output}{output format, sf default}
-
 \item{shpfile}{location of shpfile mask}
+
+\item{output}{output format, sf default}
 
 \item{extract_fun}{= "weighted_mean" by default}
 
@@ -33,6 +33,10 @@ See vignette for further details
 }
 \examples{
 \dontrun{
-output <- extract_reefs()
+
+noaa_dhw_file = "https://pae-paha.pacioos.hawaii.edu/erddap/griddap/dhw_5km.nc?CRW_SST\%5B(2024-12-20T12:00:00Z):1:(2024-12-25T12:00:00Z)\%5D\%5B(-8.9):1:(-25)\%5D\%5B(141):1:(153.5)\%5D"
+noaa_dhw_raster <- rast(noaa_dhw_file) |> flip() |> project("EPSG:4283")
+tmp <- extract_reefs(input=noaa_dhw_raster, shpfile=gbr_files)
+tmp
 }
 }

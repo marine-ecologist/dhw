@@ -4,6 +4,8 @@
 #' ## usethis namespace: start
 #' #' @importFrom graphics abline
 #' #' @importFrom zoo rollapply
+#' #' @importFrom foreach %do%
+#' #' @importFrom httr GET
 #' ## usethis namespace: end
 #' NULL
 #'

@@ -11,6 +11,7 @@ RoxygenNote: 7.3.2
 Imports: 
     dplyr,
     ecmwfr,
+    foreach,
     ggplot2,
     graphics,
     httr,
