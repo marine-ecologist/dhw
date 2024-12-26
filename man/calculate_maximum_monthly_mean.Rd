@@ -7,7 +7,7 @@
 calculate_maximum_monthly_mean(mm)
 }
 \arguments{
-\item{mm}{monthly mean?}
+\item{mm}{monthly mean}
 }
 \value{
 output list (see above for details)

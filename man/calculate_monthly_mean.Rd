@@ -4,16 +4,18 @@
 \alias{calculate_monthly_mean}
 \title{Create Monthly Mean (MMM)}
 \usage{
-calculate_monthly_mean(sst_file)
+calculate_monthly_mean(sst_file, midpoint = 1988.2857, return = "predict")
 }
 \arguments{
-\item{sst_file}{sst file}
+\item{sst_file}{SpatRaster of SST data.}
+
+\item{return}{Type of output: "predict", "slope", or "intercept".}
 }
 \value{
-climatology (terra::rast format)
+Climatology as a terra::rast object.
 }
 \description{
-Function to calculate maximum monthly mean
+Function to calculate maximum monthly mean or trends.
 
-See vignette for further details
+See vignette for further details.
 }

@@ -34,7 +34,7 @@ calculate_daily_climatology <- function(sst_file, mm) {
   terra::time(climatology_rep) <- time_values
 
   # Extract daily dates from sst_file
-  daily_dates <- terra::time(sst_file)
+  daily_dates <- as.Date(terra::time(sst_file))
 
   # Interpolation function to align monthly climatology to daily resolution
   interpolate_daily_climatology <- function(monthly_sst) {

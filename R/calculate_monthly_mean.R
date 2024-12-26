@@ -1,66 +1,69 @@
 #' @name calculate_monthly_mean
 #' @title Create Monthly Mean (MMM)
 #' @description
-#' Function to calculate maximum monthly mean
+#' Function to calculate maximum monthly mean or trends.
 #'
-#' See vignette for further details
+#' See vignette for further details.
 #'
-#' @param sst_file sst file
-#' @returns climatology (terra::rast format)
-#'
-#'
-#'
+#' @param sst_file SpatRaster of SST data.
+#' @param return Type of output: "predict", "slope", or "intercept".
+#' @returns Climatology as a terra::rast object.
 #' @export
-calculate_monthly_mean <- function(sst_file) {
+#'
+calculate_monthly_mean <- function(sst_file, midpoint = 1988.2857, return = "predict") {
 
+  # Extract time, years, and months from the raster
   time_input <- as.Date(terra::time(sst_file))
   years <- as.numeric(format(time_input, "%Y"))
   months <- as.numeric(format(time_input, "%m"))
 
-
+  # Subset SST data to 1985–2012
   sst_8512 <- terra::subset(sst_file, which(years >= 1985 & years <= 2012))
   years_8512 <- years[years >= 1985 & years <= 2012]
   months_8512 <- months[years >= 1985 & years <= 2012]
-  # time_8512 <- terra::time(sst_8512)
 
-  # Initialize a list for monthly climatologies
-  mm <- list()
+  # Initialize output list
+  mm <- vector("list", 12)
 
+  # Process each month
   for (i in 1:12) {
-    # Subset indices for the current month
+   # message(paste0("Processing month = ", i))  # Log progress
+
+    # Subset raster for the current month
     month_indices <- which(months_8512 == i)
-
-    # Check for valid data
     if (length(month_indices) > 0) {
-      # Subset SST data for the current month
-      month_indices <- which(months_8512 == i)
-      sst_month <- terra::subset(sst_8512, month_indices)  # Ensure correct subset
+      sst_month <- terra::subset(sst_8512, month_indices)
 
-      # Calculate climatology for the month
+      # Compute climatology for each cell
       climatology_month <- terra::app(sst_month, function(sst_ts) {
+        # Check for sufficient data
         if (sum(!is.na(sst_ts)) > 1) {
 
-          month_indices <- which(months_8512 == i)
-          # sst_month <- terra::subset(sst_8512, month_indices)  # Ensure correct subset
-
+          # Create data frame for regression
           df <- data.frame(
             sst = sst_ts,
-            month = months_8512[month_indices],
             year = years_8512[month_indices]
           )
 
-          #time_center <- if (i <= 5) 1988.833 else 1988.2857
-          time_center <- 1988.2857
-
+          # Fit linear model
           lm_fit <- stats::lm(sst ~ year, data = df)
-          T_1988 <- stats::predict(lm_fit, newdata = data.frame(year = time_center))
-          return(T_1988)
+
+          # Compute requested output
+         if (return == "predict") {
+            return(stats::predict(lm_fit, newdata = data.frame(year = midpoint)))
+          } else if (return == "slope") {
+            return(stats::coef(lm_fit)[2])  # Slope
+          } else if (return == "intercept") {
+            return(stats::coef(lm_fit)[1])  # Intercept
+          } else {
+            stop("Invalid return type specified. Use 'predict', 'slope', or 'intercept'.")
+          }
         } else {
-          return(NA)
+          return(NA)  # Insufficient data
         }
       })
 
-      # Store climatology raster
+      # Store output
       mm[[i]] <- climatology_month
       names(mm[[i]]) <- paste0("mm-", month.name[i])
     } else {
@@ -70,11 +73,10 @@ calculate_monthly_mean <- function(sst_file) {
     }
   }
 
-  # Combine climatologies into a single raster
-  mm <- terra::rast(mm[1:12])
+  # Combine results into a single raster
+  mm <- terra::rast(mm)
   names(mm) <- paste0("mm-", month.abb[1:12])
   terra::varnames(mm) <- paste0("mm-", month.abb[1:12])
 
   return(mm)
-
 }
