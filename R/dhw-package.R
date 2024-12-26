@@ -6,8 +6,10 @@
 #' #' @importFrom zoo rollapply
 #' #' @importFrom foreach %do%
 #' #' @importFrom httr GET
+#' #' @importFrom utils packageVersion
 #' ## usethis namespace: end
 #' NULL
+#'
 #'
 #'
 #' checking dependencies in R code ...
