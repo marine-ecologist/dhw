@@ -4,7 +4,7 @@
 \alias{create_climatology}
 \title{Create climatology}
 \usage{
-create_climatology(sst_file, window = 84, quiet = FALSE)
+create_climatology(sst_file, window = 84, quiet = FALSE, baa = FALSE)
 }
 \arguments{
 \item{sst_file}{input}
