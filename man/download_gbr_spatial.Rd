@@ -4,10 +4,12 @@
 \alias{download_gbr_spatial}
 \title{Download GBR spatial data}
 \usage{
-download_gbr_spatial(crs = "EPSG:4283")
+download_gbr_spatial(crs = "EPSG:4283", combine)
 }
 \arguments{
 \item{crs}{change the CRS if needed (EPSG:4283 as default)}
+
+\item{reefs}{Combine reefs to single LABEL_ID? See vignette}
 }
 \value{
 Simple feature collection with 9612 features and 35 fields
