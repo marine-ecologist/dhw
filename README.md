@@ -31,7 +31,7 @@ the current development version of `dhw` can be installed from github:
 
 ``` r
 #install.packages("remotes")
-remotes::install_github("symbiobase/symbioR", force=TRUE)
+devtools::install_github("https://github.com/marine-ecologist/dhw", force=TRUE)
 
 ```
 
