@@ -107,7 +107,7 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa=FALSE){
       climatology = daily_climatology,
       anomaly = anomaly,
       hotspots = hotspots,
-      dhw = dhw,
+      dhw = dhw
 
     )
   }
