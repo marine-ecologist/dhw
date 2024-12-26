@@ -4,7 +4,7 @@
 \alias{download_gbr_spatial}
 \title{Download GBR spatial data}
 \usage{
-download_gbr_spatial(crs = "EPSG:4283", combine)
+download_gbr_spatial(crs = "EPSG:4283", reefs)
 }
 \arguments{
 \item{crs}{change the CRS if needed (EPSG:4283 as default)}

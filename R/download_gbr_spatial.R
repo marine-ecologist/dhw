@@ -21,7 +21,7 @@
 
 
 
-download_gbr_spatial <- function(crs = "EPSG:4283", combine) {
+download_gbr_spatial <- function(crs = "EPSG:4283", reefs) {
   # URL for the spatial data
   url <- "https://nextcloud.eatlas.org.au/s/xQ8neGxxCbgWGSd/download/TS_AIMS_NESP_Torres_Strait_Features_V1b_with_GBR_Features.zip"
 
