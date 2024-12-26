@@ -97,8 +97,10 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa=FALSE){
     dhw = dhw,
     baa = baa
     )
+
     } else {
-    base::list(
+
+      base::list(
       sst = sst_file,
       mm = mm,
       mmm = mmm,
@@ -106,7 +108,7 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa=FALSE){
       anomaly = anomaly,
       hotspots = hotspots,
       dhw = dhw,
-      baa = baa
+
     )
   }
 
