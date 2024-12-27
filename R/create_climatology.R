@@ -23,9 +23,7 @@
 #' output <- create_climatology("crw.nc")
 #' }
 #' @export
-
-create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa=FALSE){
-
+create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa = FALSE) {
   cat("--- create_climatology ---\n")
 
   start_time <- Sys.time()
@@ -73,11 +71,13 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa=FALSE){
 
   dhw <- calculate_dhw(hotspots, window)
 
-  if (!quiet) {
-    print_elapsed_time("Processing Bleaching Alert Area (BAA)")
-  }
+  if (baa) {
+    if (!quiet) {
+      print_elapsed_time("Processing Bleaching Alert Area (BAA)")
+    }
 
-  baa <- calculate_baa(hotspots, dhw)
+    baa <- calculate_baa(hotspots, dhw)
+  }
 
   if (!quiet) {
     print_elapsed_time("Combining outputs")
@@ -86,31 +86,30 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa=FALSE){
 
   names(sst_file) <- terra::time(sst_file)
 
-  if (!quiet) {
-  base::list(
-    sst = sst_file,
-    mm = mm,
-    mmm = mmm,
-    climatology = daily_climatology,
-    anomaly = anomaly,
-    hotspots = hotspots,
-    dhw = dhw,
-    baa = baa
-    )
-
-    } else {
-
-      base::list(
+  if (baa) {
+    output <- base::list(
       sst = sst_file,
       mm = mm,
       mmm = mmm,
       climatology = daily_climatology,
       anomaly = anomaly,
       hotspots = hotspots,
-      dhw = dhw
-
+      dhw = dhw,
+      baa = baa
     )
+  } else {
+    output <-
+      base::list(
+        sst = sst_file,
+        mm = mm,
+        mmm = mmm,
+        climatology = daily_climatology,
+        anomaly = anomaly,
+        hotspots = hotspots,
+        dhw = dhw
+      )
   }
 
-    print_elapsed_time("Combining outputs")
+  return(output)
+  print_elapsed_time("Combining outputs")
 }

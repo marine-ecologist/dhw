@@ -7,6 +7,7 @@
 #' #' @importFrom foreach %do%
 #' #' @importFrom httr GET
 #' #' @importFrom utils packageVersion
+#' #' @importFrom stats time
 #' ## usethis namespace: end
 #' NULL
 #'

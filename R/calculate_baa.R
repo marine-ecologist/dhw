@@ -28,7 +28,7 @@
 #'
 calculate_baa <- function(hotspots, dhw) {
 
-  hotspotdhw <- sds(hotspots, dhw)
+  hotspotdhw <- terra::sds(hotspots, dhw)
 
   categorize_baa <- function(hs, dhw) {
   if (hs == 0) {
@@ -58,7 +58,7 @@ calculate_baa <- function(hotspots, dhw) {
     fun = function(x) categorize_baa(x[1], x[2])
   )
 
-  varnames(baa) <- "Bleaching Alert Area"
+  terra::varnames(baa) <- "Bleaching Alert Area"
   return(baa)
 
 }
