@@ -18,7 +18,7 @@
 #' Bleaching Alert Level 4   ---   1 <= HotSpot and 16 <= DHW < 20
 #' Bleaching Alert Level 5   ---   1 <= HotSpot and 20 <= DHW
 
-#' See vignette for further details
+#' See vignette for further details.
 #'
 #' @param hotspots hotspots
 #' @param window number of days to sum hotspots, default = 84 (12 weeks)
