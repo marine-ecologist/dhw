@@ -23,16 +23,17 @@ The `dhw` package was created to track reproducibility in code while applying th
 To validate the climatology and maximum monthly mean take a spatial subset of the NOAA CoralTemp and the NOAA Daily climatology files for a single pixel (Lizard Island) spanning 1:
 
 
-```{r, fig.width=9, fig.height=7, message=FALSE}
+```{r, fig.width=9, fig.height=7, message=FALSE, cache=FALSE}
 
 library(dhw)
+library(terra)
 
 plot_mm(input = unwrap(lizard_OISST_raster), lon = 145.25, lat = -14.5)
 
 
 ```
 
-### verify Degree Heating Weeks
+### Verify Degree Heating Weeks
 
 The `dhw` package was created to track reproducibility in code while applying the CRW algorithms to additional datasets.
 
@@ -40,14 +41,16 @@ To validate the `create_climatology()` functions, take a spatial subset of the N
 
 (NOAA Climatology available here: [ct5km_climatology_v3.1.nc](https://www.star.nesdis.noaa.gov/pub/sod/mecb/crw/data/5km/v3.1_op/climatology/) - Contains 12 monthly mean SST climatologies for deriving CRW's daily global 5km SST Anomaly product. The maximum pixel-based values from among the 12 monthly mean SST climatologies form the Maximum Monthly Mean (MMM) SST climatology, which is then used to derive CRW's daily global 5km coral bleaching heat stress products)
 
+From the CoralTemp data, run `create_climatology()` to generate SST, Daily Climatologies, MM, MMM, SSTA, HS, DHW:
 
 
-```{r, message=FALSE}
+```{r, message=FALSE, cache=FALSE}
 
 library(sf)
 library(terra)
 library(tidyverse)
 library(dhw)
+library(tidyterra)
 
 
 grid_point <- data.frame(longitude = 145.405, latitude = -14.655) |>
@@ -68,13 +71,13 @@ CoralTempDailyClimatology <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/ct5k
 
 
 
-```
-
-From the CoralTemp data, run `create_climatology()` to generate SST, Daily Climatologies, MM, MMM, SSTA, HS, DHW:
-
-```{r}
 
 test_SST <- create_climatology(CoralTempSST)
+
+
+
+test_SST_vals <- terra::values(test_SST$mm) |> as.numeric() |> round(2)
+CoralTempDailyClimatology_vals <- terra::values(CoralTempDailyClimatology) |> as.numeric()
 
 ```
 
@@ -83,12 +86,12 @@ Comparing the two datasets, June - December mostly match, but MM derived from th
 ```{r}
 
 data.frame(month=month.abb, 
-           dhw_library_mm = values(test_SST$mm) |> as.numeric() |> round(2),
-           NOAA_mmm = values(CoralTempDailyClimatology) |> as.numeric()) |> 
+           dhw_library_mm = test_SST_vals,
+           NOAA_mmm = CoralTempDailyClimatology_vals) |> 
 
 
 ggplot() + theme_bw() +
-  geom_point(aes(NOAA_mmm, dhw_library_mm, fill=month), linewidth=0, shape=21, size=2.5, alpha=0.4) +
+  geom_point(aes(NOAA_mmm, dhw_library_mm, fill=month), stroke=0.5, shape=21, size=2.5, alpha=0.4) +
   stat_smooth(aes(NOAA_mmm, dhw_library_mm), method=lm) +
   coord_fixed()
 
@@ -172,7 +175,7 @@ calculated_baa <- calculated_baa |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE
 daily_climatology_plot <- ggplot() + theme_bw() + 
   geom_line(data=calculated_sst, aes(time,calculated_SST), color="grey") +
   geom_line(data = calculated_dc, aes(time, calculated_DC), color="blue") +
-  geom_hline(yintercept=values(calculated_mmm) |> as.numeric(), color="red")  +
+  geom_hline(yintercept=terra::values(calculated_mmm) |> as.numeric(), color="red")  +
   ylab("SST")
 
 library(patchwork)
@@ -225,13 +228,13 @@ calculated_data <-
 combined_data <- left_join(calculated_data, NOAA_data, by = join_by(time))
 
 
-#View(combined_data |> select(time, NOAA_HS, NOAA_DHW, NOAA_BAA, round(calculated_HS,2), round(calculated_DHW,2), calculated_BAA))
+#View(combined_data |> select(time, NOAA_HS, NOAA_DHW, NOAA_BAA, calculated_HS, calculated_DHW, calculated_BAA)
 
 ## reextract mm
 
 mm_comparison <- data.frame(month=month.abb, 
-           calculated_MM = values(calculated_mm) |> as.numeric() |> round(2),
-           NOAA_MM = values(CoralTempDailyClimatology) |> as.numeric())
+           calculated_MM = terra::values(calculated_mm) |> as.numeric() |> round(2),
+           NOAA_MM = terra::values(CoralTempDailyClimatology) |> as.numeric())
 
 
 
@@ -266,7 +269,7 @@ calibrated_plot_BAA <- ggplot() + theme_bw() +
    
 ```
 
-
+```{r}
 # 
 # ### multiple gridcells
 # 

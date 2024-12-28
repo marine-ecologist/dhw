@@ -32,7 +32,7 @@ plot_mm <- function(input, lon, lat) {
     dplyr::filter(year >= 1985, year <= 2012)
 
   # Calculate predictions, slopes, and intercepts
-  input_predict_1998 <- input |> calculate_monthly_mean(return = "predict") |>
+  input_predict_1998 <- input |> calculate_monthly_mean(return = "predict", midpoint = 1998.5) |>
     terra::as.data.frame(xy = FALSE, wide = FALSE, time = FALSE) |>
     dplyr::mutate(month = 1:12)
 
@@ -61,8 +61,8 @@ plot_mm <- function(input, lon, lat) {
     # Predictions for 1998 and 1988.2857
     ggplot2::geom_point(data = input_predict_1998, ggplot2::aes(1998.5, values), color = "red", shape = 8, size = 3) +
     ggplot2::geom_point(data = input_predict, ggplot2::aes(1988.2857, values), color = "darkred", shape = 8, size = 3) +
-    ggplot2::geom_text(data = input_predict_1998, ggplot2::aes(1998.5, values + 0.2, label = "1998.5"), color = "red", size = 3) +
-    ggplot2::geom_text(data = input_predict, ggplot2::aes(1988.2857, values + 0.1, label = "1988.2857"), color = "darkred", size = 3) +
+    ggplot2::geom_text(data = input_predict_1998, ggplot2::aes(1998.5, values + values / 60, label = "1998.5"), color = "red", size = 3) +
+    ggplot2::geom_text(data = input_predict, ggplot2::aes(1988.2857, values + values / 60, label = "1988.2857"), color = "darkred", size = 3) +
 
     # Regression lines
     ggplot2::geom_abline(data = plot_data, ggplot2::aes(slope = slope, intercept = intercept),

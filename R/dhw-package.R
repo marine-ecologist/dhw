@@ -8,6 +8,7 @@
 #' #' @importFrom httr GET
 #' #' @importFrom utils packageVersion
 #' #' @importFrom stats time
+#' #' @importFrom terra unwrap
 #' ## usethis namespace: end
 #' NULL
 #'

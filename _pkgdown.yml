@@ -68,17 +68,22 @@ reference:
 - title: Download data
   contents:
   - download_CoralTemp
-  - download_ERA5
   - download_OISST
   - download_gbr_spatial
+  - download_ERA5
+  - process_ERA5
 - title: Visualise data
   contents:
   - plot_year
+  - plot_mm
   - plot2
 - title: Source data
   contents:
   - NOAA_CRW_data
-
+- title: Assist functions
+  contents:
+  - summarise_raster
+  - extract_reefs
 
 articles:
 - title: All vignettes
