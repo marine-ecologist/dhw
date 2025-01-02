@@ -1,5 +1,9 @@
 url: https://marine-ecologist.github.io/dhw/
 
+home:
+  title: "dhw Overview"
+  description: "An r package for calculating SST metrics" # Short description for metadata
+
 authors:
   George Roff:
     href: https://github.com/marine.ecologist/
