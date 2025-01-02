@@ -30,5 +30,5 @@ Bleaching Alert Level 2   ---   1 <= HotSpot and 8 <= DHW < 12
 Bleaching Alert Level 3   ---   1 <= HotSpot and 12 <= DHW < 16
 Bleaching Alert Level 4   ---   1 <= HotSpot and 16 <= DHW < 20
 Bleaching Alert Level 5   ---   1 <= HotSpot and 20 <= DHW
-See vignette for further details
+See vignette for further details.
 }

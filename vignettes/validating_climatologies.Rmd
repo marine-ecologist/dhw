@@ -11,8 +11,11 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  cache = FALSE,
   comment = "#>"
 )
+
+
 ```
 
 
@@ -58,25 +61,30 @@ grid_point <- data.frame(longitude = 145.405, latitude = -14.655) |>
   buffer(width = 0.001)
 
 
-CoralTempSST <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/GBR_coraltemp_v3.1_sst.nc") %>% 
-  crop(., grid_point) |> 
-  project("EPSG:4283")
+# CoralTempSST <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/GBR_coraltemp_v3.1_sst.nc") %>% 
+#   crop(., grid_point) |> 
+#   project("EPSG:4283") |> 
+#   wrap()
+# 
+# 
+# CoralTempDailyClimatology <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/ct5km_climatology_v3.1.nc") %>% 
+#   crop(., grid_point) |> 
+#   tidyterra::select(2:13) |> 
+#   project("EPSG:4283") |> 
+#   wrap()
+# 
+# usethis::use_data(CoralTempSST)
+# usethis::use_data(CoralTempDailyClimatology)
 
+CoralTempSST <- unwrap(CoralTempSST)
+CoralTempDailyClimatology <- unwrap(CoralTempDailyClimatology)
 
-CoralTempDailyClimatology <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/ct5km_climatology_v3.1.nc") %>% 
-  crop(., grid_point) |> 
-  tidyterra::select(2:13) |> 
-  project("EPSG:4283")
-
-
-
-
-test_SST <- create_climatology(CoralTempSST)
+test_SST <- create_climatology(unwrap(CoralTempSST))
 
 
 
 test_SST_vals <- terra::values(test_SST$mm) |> as.numeric() |> round(2)
-CoralTempDailyClimatology_vals <- terra::values(CoralTempDailyClimatology) |> as.numeric()
+CoralTempDailyClimatology_vals <- terra::values(unwrap(CoralTempDailyClimatology)) |> as.numeric()
 
 ```
 
@@ -180,20 +188,25 @@ daily_climatology_plot <- ggplot() + theme_bw() +
 library(patchwork)
 
 daily_anomalies_plot <- ggplot() + theme_bw() + 
-  geom_line(data=calculated_anomalies, aes(time, calculated_SSTA)) +
+  geom_line(data=calculated_anomalies, aes(time, calculated_SSTA, color=calculated_SSTA), show.legend=FALSE) +
+  scale_color_distiller(palette="RdBu") +
+  geom_hline(yintercept=0, color="black") +
   ylab("SST Anomalies")
 
 daily_hs_plot <- ggplot() + theme_bw() + 
-  geom_line(data = calculated_hotspots, aes(time, calculated_HS)) +
+  geom_line(data = calculated_hotspots, aes(time, calculated_HS, color=calculated_HS), show.legend=FALSE) +
+  scale_color_distiller(palette="Reds", direction=1) +
   ylab("Hotspots")
 
 daily_dhw_plot <- ggplot() + theme_bw() + 
-  geom_line(data=calculated_dhw, aes(time, calculated_DHW)) +
+  geom_line(data=calculated_dhw, aes(time, calculated_DHW, color=calculated_DHW), linewidth=1.5, show.legend=FALSE) +
+  scale_color_distiller(palette="RdYlGn", direction=-1) +
   ylab("Degree Heating Weeks")
 
 
 daily_baa_plot <- ggplot() + theme_bw() + 
-  geom_line(data=calculated_baa, aes(time, calculated_BAA)) +
+  geom_line(data=calculated_baa, aes(time, calculated_BAA, color=calculated_BAA), show.legend=FALSE) +
+  scale_color_distiller(palette="RdPu", direction=1) +
   ylab("Bleaching Alert Area")
 
 (daily_climatology_plot / daily_anomalies_plot / daily_hs_plot / daily_dhw_plot / daily_baa_plot)

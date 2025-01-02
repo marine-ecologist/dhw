@@ -21,6 +21,8 @@
 #' See vignette for further details.
 #'
 #' @param hotspots hotspots
+#' @param dhw dhw
+
 #' @param window number of days to sum hotspots, default = 84 (12 weeks)
 #' @returns degree heating weeks (terra::rast format)
 #'
