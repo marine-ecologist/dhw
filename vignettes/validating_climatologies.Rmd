@@ -50,7 +50,6 @@ library(sf)
 library(terra)
 library(tidyverse)
 library(dhw)
-library(tidyterra)
 
 
 grid_point <- data.frame(longitude = 145.405, latitude = -14.655) |>
@@ -66,7 +65,7 @@ CoralTempSST <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/GBR_coraltemp_v3.
 
 CoralTempDailyClimatology <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/ct5km_climatology_v3.1.nc") %>% 
   crop(., grid_point) |> 
-  select(2:13) |> 
+  tidyterra::select(2:13) |> 
   project("EPSG:4283")
 
 
@@ -268,165 +267,3 @@ calibrated_plot_BAA <- ggplot() + theme_bw() +
 (calibrated_plot_SST + calibrated_plot_SSTA + calibrated_plot_HS + calibrated_plot_DHW + calibrated_plot_BAA) + plot_layout(nrow=2)
    
 ```
-
-```{r}
-# 
-# ### multiple gridcells
-# 
-# 
-# ```{r, fig.width=9, fig.height=4}
-# 
-# 
-# # Load Coraltemp
-# 
-# grid_point <- data.frame(longitude = 145.405, latitude = -14.655) |>
-#   st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |>
-#   vect() |>
-#   buffer(width = 50000)
-# 
-# CoralTempSST_subset <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/GBR_coraltemp_v3.1_sst.nc") |>
-#   select(2:13) |> 
-#   crop(grid_area) |> 
-#    (\(x) { crs(x) <- "EPSG:4283"; x })()
-# 
-# 
-# # Load Climatology
-# 
-# CoralTempDailyClimatology <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/ct5km_climatology_v3.1.nc") |> 
-#   select(2:13) |> 
-#   crop(grid_area) |> 
-#    (\(x) { crs(x) <- "EPSG:4283"; x })()
-# 
-# CoralTempDailyClimatology_subset <- CoralTempDailyClimatology
-# 
-# # mask to match sst
-# CoralTempDailyClimatology_subset <- terra::mask(CoralTempDailyClimatology, CoralTempSST_subset)
-# 
-# # Calculate Climatology
-# 
-# calculated_mm <- calculate_monthly_mean(sst_file = CoralTempSST_subset)
-# calculated_mmm <- calculate_maximum_monthly_mean(mm = CoralTempDailyClimatology)
-# calculated_dc <- calculate_daily_climatology(sst_file = CoralTempSST_subset, mm = CoralTempDailyClimatology)
-# calculated_anomalies <- calculate_anomalies(sst_file = CoralTempSST_subset, climatology = calculated_dc)
-# calculated_hotspots <- calculate_hotspots(mmm = calculated_mmm, sst_file = CoralTempSST_subset)
-# calculated_dhw <- calculate_dhw(hotspots = calculated_hotspots)
-# calculated_baa <- calculate_baa(hotspots = calculated_hotspots, dhw = calculated_dhw)
-# 
-# 
-# 
-# 
-# a1 <- ggplot() + theme_bw() + 
-#   ggtitle("Jan MM (dhw library)") +
-#   tidyterra::geom_spatraster(data=calculated_mm["mm-Jan"]) +
-#   scale_fill_distiller(palette="RdBu", limits=c(28.4, 28.6))
-# 
-# b1 <- ggplot() + theme_bw() + facet_wrap( ~ lyr) +
-#   ggtitle("Jan MM (NOAA Raw)") +
-#   tidyterra::geom_spatraster(data=CoralTempDailyClimatology["sst_clim_january"]) +
-#   scale_fill_distiller(palette="RdBu", limits=c(28.4, 28.6))
-# 
-# a1|b1
-# 
-# 
-# 
-# 
-# calculated_anom_max <- terra::app(calculated_dhw, fun = function(x) {
-#   return(base::max(x, na.rm = TRUE))
-# })
-# 
-# 
-# calculated_hotspots_max <- terra::app(calculated_hotspots, fun = function(x) {
-#   return(base::max(x, na.rm = TRUE))
-# })
-# 
-# calculated_dhw_max <- terra::app(calculated_dhw, fun = function(x) {
-#   return(base::max(x, na.rm = TRUE))
-# })
-# 
-# calculated_baa_max <- terra::app(calculated_baa, fun = function(x) {
-#   return(base::max(x, na.rm = TRUE))
-# })
-# 
-# 
-# ```
-# 
-# 
-# 
-# 
-# 
-# ### Timeseries end dates
-# 
-# 
-# ```{r, fig.width=9, fig.height=7}
-# 
-# 
-# # Load Coraltemp
-# 
-# grid_point <- data.frame(longitude = 145.405, latitude = -14.655) |>
-#   st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |>
-#   vect() |>
-#   buffer(width = 100)
-# 
-# CoralTempSST_subset <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/GBR_coraltemp_v3.1_sst.nc") |> 
-#   crop(grid_point) |> 
-#    (\(x) { crs(x) <- "EPSG:4283"; x })()
-# 
-# CoralTempSST_subset[[time(CoralTempSST_subset) < as.Date("1991-01-01")]]
-# 
-# 
-# # Load Climatology
-# 
-# CoralTempDailyClimatology <- rast("/Users/rof011/GBR-dhw/datasets/coraltemp/ct5km_climatology_v3.1.nc") |> 
-#   select(2:13) |> 
-#   crop(grid_area) |> 
-#    (\(x) { crs(x) <- "EPSG:4283"; x })()
-# 
-# 
-# 
-# # Calculate Climatology
-# 
-# calculated_mm <- calculate_monthly_mean(sst_file = CoralTempSST_subset)
-# calculated_mmm <- calculate_maximum_monthly_mean(mm = CoralTempDailyClimatology)
-# calculated_dc <- calculate_daily_climatology(sst_file = CoralTempSST_subset, mm = CoralTempDailyClimatology)
-# calculated_anomalies <- calculate_anomalies(sst_file = CoralTempSST_subset, climatology = calculated_dc)
-# calculated_hotspots <- calculate_hotspots(mmm = calculated_mmm, sst_file = CoralTempSST_subset)
-# calculated_dhw <- calculate_dhw(hotspots = calculated_hotspots)
-# calculated_baa <- calculate_baa(hotspots = calculated_hotspots, dhw = calculated_dhw)
-# 
-# 
-# 
-# NOAA_CRW_subset <- NOAA_CRW |> 
-#   as.data.frame() |> 
-#   mutate(time = as.Date(time)) |> 
-#   select(time, crw_dhw)
-# 
-# calculated_dhw_subset <- calculated_dhw |> 
-#   as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> 
-#   rename(dhw=values) |> 
-#   filter(time %in% NOAA_CRW_subset$time) |> 
-#   select(time, dhw)
-# 
-# 
-# combined_subsets <- left_join(NOAA_CRW_subset, calculated_dhw_subset, by = join_by(time))
-# combined_subsets_long <- combined_subsets |> 
-#   pivot_longer(-time, names_to = "data_source", values_to = "dhw")
-# 
-# library(patchwork)
-# 
-# a <- ggplot() + theme_bw() + facet_wrap( ~ data_source) +
-#   geom_line(data=combined_subsets_long, aes(time, dhw, color=data_source), show.legend=FALSE)
-# 
-# b <- ggplot() + theme_bw() +
-#   geom_line(data=combined_subsets_long, aes(time, dhw, color=data_source))
-# 
-# 
-# c <- ggplot() + theme_bw() +
-#   geom_point(data=combined_subsets, aes(crw_dhw, dhw))
-# 
-# 
-# a/(b|c)
-# 
-
-```
-
-

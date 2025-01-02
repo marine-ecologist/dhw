@@ -27,6 +27,6 @@
 
 summarise_raster <- function(input, index, fun, cores=1, na.rm=TRUE){
 
-  output <- tapp(input, index = index, fun = fun, na.rm = na.rm, cores = cores)
+  output <- terra::tapp(input, index = index, fun = fun, na.rm = na.rm, cores = cores)
 
 }
