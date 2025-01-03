@@ -1,13 +1,13 @@
 ## dhw: an R package for calculating various SST metrics (Maximum Monthly Mean Climatology, SST Anomalies, Coral Bleaching HotSpots, Degree Heating Weeks) 
 
 <img align="right" width="250" src="man/figures/logo2.png">
-The <b>dhw</b> package calculates SST metrics from raw SST datasets by following the methods of the Coral Reef Watch Coral Bleaching Heat Stress Product Suite Version 3.1 (see Skirving et al. 2020 for methods).
+The <b>dhw</b> package calculates SST metrics from raw SST datasets by following the methods of the National Oceanic and Atmospheric Administration’s (NOAA) <a href="https://coralreefwatch.noaa.gov">Coral Reef Watch (CRW)  Coral Bleaching Heat Stress Product Suite Version 3.1</a> (see <a href="https://www.mdpi.com/2072-4292/12/23/3856) ">Skirving et al. 2020</a> for product description and methods).
 <br>
 <br>
-The Degree Heating Weeks product from <a href="https://coralreefwatch.noaa.gov">National Oceanic and Atmospheric Administration’s (NOAA) Coral Reef Watch (CRW) program</a> is calculated from the 
+The NOAA Coral Reef Watch (CRW) daily global 5km satellite coral bleaching <a href="https://coralreefwatch.noaa.gov/product/5km/index_5km_dhw.php"> Degree Heating Week (DHW)</a> product shows accumulated heat stress during the most recent 12-week period, and ranges from 0 to 20 °C-weeks. DHW  is directly related to the timing and intensity of coral bleaching and is the most common metric in assessing coral bleaching events (see <a href="https://coralreefwatch.noaa.gov/product/5km/index_5km_dhw.php">here</a> for further details).
 <br>
 <br>
-Due to changes in the datasets used by the <a href="https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php">CRW</a> over the years (see Skirving et al. 2020 for details), the <a href="https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php">CoralTemp </a> degree heating weeks (and other SST metrics) are calculated against a specific climatology (1985–1990 and 1993) to allow for internally consistent anomaly products.
+  Due to changes in the datasets used by the <a href="https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php">CRW</a> over the years (see <a href="https://www.mdpi.com/2072-4292/12/23/3856) ">Skirving et al. 2020</a> for details), the <a href="https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php">CoralTemp </a> degree heating weeks (and other SST metrics) are calculated against a specific baseline climatology (1985–1990 and 1993) to allow for internally consistent anomaly products.
 <br>
 <br>
 The <code>dhw</code> package provides a series of functions to recreate the algorithms for the CRW metrics (Maximum Monthly Mean Climatology, SST Anomalies, Coral Bleaching HotSpots, Degree Heating Weeks) using any SST product (e.g., <a href="https://www.ncei.noaa.gov/products/optimum-interpolation-sst">OISST</a>) that spans the baseline period of 1985 to 1993.
