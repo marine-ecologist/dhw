@@ -13,6 +13,8 @@
 #' @param shpfile Location of shapefile mask.
 #' @param weights see ?exact_extract for details
 #' @param fun  see ?exact_extract for details
+#' @param timeseries time series
+#' @param varname varname
 #' @returns Shapefile `sf` object with SST details or `data.frame` (see above for details).
 #' @examples
 #'

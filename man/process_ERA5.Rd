@@ -4,12 +4,38 @@
 \alias{process_ERA5}
 \title{Process ERA5 NetCDF Files}
 \usage{
-process_ERA5(folder, units = "celsius")
+process_ERA5(
+  input,
+  polygon,
+  crop = TRUE,
+  mask = TRUE,
+  downsample = FALSE,
+  res = 0.1,
+  crs = "EPSG:7844",
+  combinedfilename = NULL,
+  units = "celsius"
+)
 }
 \arguments{
-\item{folder}{Folder containing NetCDF (.nc) files.}
+\item{input}{Folder containing NetCDF (.nc) files.}
+
+\item{polygon}{polygon for crop/masl}
+
+\item{crop}{TRUE/FALSE}
+
+\item{mask}{TRUE/FALSE}
+
+\item{downsample}{TRUE/FALSE}
+
+\item{res}{resolution for downsamlpling}
+
+\item{crs}{change the CRS if needed (EPSG:4283 as default)}
+
+\item{combinedfilename}{output file path, should be .rds}
 
 \item{units}{Units for temperature: one of "celsius" or "kelvin". Default is "celsius".}
+
+\item{variable}{redundant?}
 }
 \value{
 A combined SpatRaster object in ERA5 format.

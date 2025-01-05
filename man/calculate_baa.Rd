@@ -9,7 +9,7 @@ calculate_baa(hotspots, dhw)
 \arguments{
 \item{hotspots}{hotspots}
 
-\item{window}{number of days to sum hotspots, default = 84 (12 weeks)}
+\item{dhw}{dhw}
 }
 \value{
 degree heating weeks (terra::rast format)

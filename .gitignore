@@ -10,3 +10,5 @@ code/
 /doc/
 /Meta/
 vignettes/*.Rmd.cache/
+**/*_cache/
+**/*_cache/**

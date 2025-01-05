@@ -17,6 +17,7 @@
 #' @param sst_file input
 #' @param window number of days for the DHW sum (12 weeks = 84 days default)
 #' @param quiet verbose - update with messages?
+#' @param baa return baa? TRUE/FALSE
 #' @returns output list (see above for details)
 #' @examples
 #' \dontrun{

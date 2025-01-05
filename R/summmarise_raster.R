@@ -10,10 +10,11 @@
 #' Fun as min, max, mean etc.
 #'
 #' @param input Input raster data.
+#' @param index options for time, see above
 #' @param fun summarise function see above)
 #' @param cores number of cores, see tapp() for details
 #' @param na.rm see tapp() for details
-#' @param overwrite see tapp() for details, set as TRUE by default
+#' @param overwrite logical. If TRUE, filename is overwritten
 #' @returns summarise raster
 #' @examples
 #' \dontrun{
@@ -25,8 +26,8 @@
 #' @export
 
 
-summarise_raster <- function(input, index, fun, cores=1, na.rm=TRUE){
+summarise_raster <- function(input, index, fun, cores=1, na.rm=TRUE, overwrite){
 
-  output <- terra::tapp(input, index = index, fun = fun, na.rm = na.rm, cores = cores)
+  output <- terra::tapp(input, index = index, fun = fun, na.rm = na.rm, cores = cores, overwrite)
 
 }

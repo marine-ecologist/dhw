@@ -11,7 +11,7 @@
 #'
 #'
 #' @param crs change the CRS if needed (EPSG:4283 as default)
-#' @param reefs Combine reefs to single LABEL_ID? See vignette
+#' @param return One of "combined", "hull", or "base"
 #' @returns Simple feature collection with 9612 features and 35 fields
 #' @examples
 #' \dontrun{
@@ -21,7 +21,7 @@
 
 
 
-download_gbr_spatial <- function(crs = "EPSG:4283", reefs) {
+download_gbr_spatial <- function(crs = "EPSG:4283", return="base") {
   # URL for the spatial data
   url <- "https://nextcloud.eatlas.org.au/s/xQ8neGxxCbgWGSd/download/TS_AIMS_NESP_Torres_Strait_Features_V1b_with_GBR_Features.zip"
 
@@ -57,7 +57,7 @@ download_gbr_spatial <- function(crs = "EPSG:4283", reefs) {
   gbr_shape <- sf::st_read(shapefile_path, quiet = TRUE) |>
     sf::st_transform(crs)
 
-  if (reefs=="combined"){
+  if (return=="combined"){
 
     gbr_files <- gbr_shape |> sf::st_transform(4283)
     gbr_files$LABEL_ID_FULL <- gbr_files$LABEL_ID
@@ -81,7 +81,19 @@ download_gbr_spatial <- function(crs = "EPSG:4283", reefs) {
 
     return(gbr_shape)
 
-  } else if (!reefs=="combined"){
+  } else if (return=="hull"){
+
+    gbr_hull <- gbr_shape |>
+      sf::st_make_valid() |>
+      dplyr::filter(FEAT_NAME %in% c("Reef", "Terrestrial Reef")) |>
+      concaveman::concaveman() |>
+      sf::st_make_valid() |>
+      sf::st_buffer(1000) |>
+      st_transform(crs)
+
+    return(gbr_hull)
+
+  } else if (return=="base"){
 
     return(gbr_shape)
 

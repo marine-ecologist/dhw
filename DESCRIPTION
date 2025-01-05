@@ -1,6 +1,6 @@
 Package: dhw
 Title: A Package for Calculating Degree Heating Weeks and other SST Metrics
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
     person("George", "Roff", , "george.roff@csiro.au", role = c("aut", "cre"))
 Description: Calculates various SST metrics (Degree Heating Weeks, SST Anomalies, HotSpots, Mean Monthly Maximum) from daily SST sources following the NOAA Coral Reef Watch (CRW) methodology (https://coralreefwatch.noaa.gov for details)
@@ -9,16 +9,22 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
+    concaveman,
     dplyr,
     ecmwfr,
+    exactextractr,
     foreach,
     ggplot2,
     graphics,
     httr,
+    lubridate,
     magrittr,
+    ncdf4,
     sf,
     stats,
+    stringr,
     terra,
+    tidyr,
     utils,
     zoo
 Depends: 

@@ -9,6 +9,8 @@ calculate_monthly_mean(sst_file, midpoint = 1988.2857, return = "predict")
 \arguments{
 \item{sst_file}{SpatRaster of SST data.}
 
+\item{midpoint}{recentered date, see vignette}
+
 \item{return}{Type of output: "predict", "slope", or "intercept".}
 }
 \value{

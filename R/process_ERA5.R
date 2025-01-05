@@ -5,7 +5,15 @@
 #'
 #' See vignette for further details.
 #'
-#' @param folder Folder containing NetCDF (.nc) files.
+#' @param input Folder containing NetCDF (.nc) files.
+#' @param polygon polygon for crop/masl
+#' @param crs change the CRS if needed (EPSG:4283 as default)
+#' @param crop TRUE/FALSE
+#' @param mask TRUE/FALSE
+#' @param downsample TRUE/FALSE
+#' @param res resolution for downsamlpling
+#' @param variable redundant?
+#' @param combinedfilename output file path, should be .rds
 #' @param units Units for temperature: one of "celsius" or "kelvin". Default is "celsius".
 #' @return A combined SpatRaster object in ERA5 format.
 #' @examples
@@ -15,10 +23,10 @@
 #' }
 #' @export
 
-process_ERA5 <- function(folder, units = "celsius") {
+process_ERA5 <- function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALSE, res=0.1, crs="EPSG:7844", combinedfilename = NULL, units = "celsius") {
 
   # List all NetCDF files in the folder
-  files <- list.files(folder, pattern = "\\.nc$", full.names = TRUE)
+  files <- list.files(input, pattern = "\\.nc$", full.names = TRUE)
 
   # Sort files by name to ensure correct order
   files <- sort(files)
@@ -62,6 +70,22 @@ process_ERA5 <- function(folder, units = "celsius") {
       ecmwfr_combined <- c(ecmwfr_combined, rastfile)
     }
   }
+
+  ecmwfr_combined
+  polygon <- polygon |> sf::st_transform(crs(ecmwfr_combined))
+
+  if (isTRUE(mask)){
+    ecmwfr_combined <- terra::mask(ecmwfr_combined, poly)
+  }
+  if (isTRUE(crop)){
+    ecmwfr_combined <- terra::crop(ecmwfr_combined, polygon)
+  }
+  if (isTRUE(downsample)){
+    target <- terra::rast(terra::ext(ecmwfr_combined), resolution = res, crs = crs(ecmwfr_combined))
+    ecmwfr_combined <- terra::resample(ecmwfr_combined, target, method = "bilinear")
+  }
+
+  saveRDS(terra::wrap(ecmwfr_combined), combinedfilename)
 
   # Return the combined raster
   return(ecmwfr_combined)

@@ -5,7 +5,8 @@
 \title{Download OISST data}
 \usage{
 download_OISST(
-  url = "https://www.ncei.noaa.gov/thredds/fileServer/OisstBase/NetCDF/V2.1/AVHRR",
+  url =
+    "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/",
   start_date,
   end_date,
   dest_dir,
@@ -40,6 +41,12 @@ are referenced to buoys to compensate for platform differences and sensor biases
 }
 \examples{
 \dontrun{
-download_CoralTemp(1990, 2020, "/users/era5/", variable = "ssta", cores = 10)
+
+download_OISST(url = "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/",
+  start_date = "1990-01-01",
+  end_date = "1990-01-02",
+  dest_dir = "/Volumes/Extreme_SSD/dhw/OISST/2024/",
+  mc.cores = 1)
+
 }
 }

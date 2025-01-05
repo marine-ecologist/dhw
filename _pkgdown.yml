@@ -1,7 +1,7 @@
 url: https://marine-ecologist.github.io/dhw/
 
 home:
-  title: "dhw Overview"
+  title: "dhw package overview"
   description: "An r package for calculating SST metrics" # Short description for metadata
 
 authors:
@@ -12,6 +12,9 @@ template:
   bootstrap: 5
   math-rendering: mathjax
   light-switch: true
+
+development:
+  mode: release
 
 navbar:
   structure:
@@ -76,6 +79,8 @@ reference:
   - download_gbr_spatial
   - download_ERA5
   - process_ERA5
+  - process_CoralTemp
+  - process_OISST
 - title: Visualise data
   contents:
   - plot_year
@@ -88,6 +93,7 @@ reference:
   contents:
   - summarise_raster
   - extract_reefs
+  - check_missing_dates
 
 articles:
 - title: All vignettes

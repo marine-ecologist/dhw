@@ -12,6 +12,8 @@ create_climatology(sst_file, window = 84, quiet = FALSE, baa = FALSE)
 \item{window}{number of days for the DHW sum (12 weeks = 84 days default)}
 
 \item{quiet}{verbose - update with messages?}
+
+\item{baa}{return baa? TRUE/FALSE}
 }
 \value{
 output list (see above for details)

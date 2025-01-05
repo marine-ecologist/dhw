@@ -5,44 +5,50 @@
 \title{Download CoralTemp data}
 \usage{
 download_CoralTemp(
-  url = "https://www.ncei.noaa.gov/thredds-ocean/catalog/crw/5km/v3.1/nc/v1.0/daily",
+  url = "https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw/5km/v3.1/nc/v1.0/daily/",
   start_date,
   end_date,
   dest_dir,
-  variable = "hs",
+  variable = "sst",
   mc.cores = 1
 )
 }
 \arguments{
-\item{url}{one of the NOAA thredds url}
+\item{url}{NOAA THREDDS server URL. Default is the CoralTemp data server.}
 
-\item{start_date}{end year}
+\item{start_date}{Start date in "YYYY-MM-DD" format.}
 
-\item{end_date}{end year}
+\item{end_date}{End date in "YYYY-MM-DD" format.}
 
-\item{dest_dir}{save file location}
+\item{dest_dir}{Directory where NetCDF files should be saved.}
 
-\item{variable}{one of 'sst', 'ssta', 'hs', 'dhw'}
+\item{variable}{Data type: 'sst', 'dhw', 'ssta', or 'hs'.}
 
-\item{mc.cores}{set the number of cores}
+\item{mc.cores}{Number of cores for parallel downloads.}
 }
 \value{
-downloaded nc files to specified location
+Saves NetCDF files in the specified destination folder.
 }
 \description{
-Function to download and save NetCDF files for CoralTemp
-\code{download_CoralTemp()} is a function to download NOAA CRW data
+Downloads and saves NOAA CoralTemp NetCDF files from the specified start and end dates.
 
-If the number of cores is set to >1, the function uses \code{mclapply} to parallel download datasets, else 1 = single downloads.
+The CoralTemp dataset provides daily global 5km Sea Surface Temperature (SST) data,
+including anomalies and degree heating weeks, spanning from January 1, 1985.
 
-Notes:
-The NOAA Coral Reef Watch (CRW) daily global 5km Sea Surface Temperature (SST) product, also known as CoralTemp,
-shows the nighttime ocean temperature measured at the surface. The CoralTemp SST data product was developed from
-two, related reanalysis (reprocessed) SST products and a near real-time SST product. Spanning January 1, 1985
-to the present, the CoralTemp SST is one of the best and most internally consistent daily global 5km SST products available.
+URL links current 4th Jan:
+https://www.ncei.noaa.gov/thredds-ocean/catalog/crw/5km/v3.1/nc/v1.0/daily/sst/1985/catalog.html?dataset=crw/5km/v3.1/nc/v1.0/daily/sst/1985/coraltemp_v3.1_19850101.nc
+https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw/5km/v3.1/nc/v1.0/daily/sst/1985/coraltemp_v3.1_19850101.nc
+
+See: https://coralreefwatch.noaa.gov/product/5km/index_5km_sst.php
 }
 \examples{
 \dontrun{
-download_CoralTemp(1990, 2020, "/users/era5/", variable= "ssta", cores=10)
+
+download_CoralTemp(url = "https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw/5km/v3.1/nc/v1.0/daily/",
+                   start_date = "1990-01-01",
+                   end_date = "1990-01-02",
+                   dest_dir = "/Volumes/Extreme_SSD/dhw/CRW/2024/",
+                   variable = "sst",
+                   mc.cores = 1)
 }
 }

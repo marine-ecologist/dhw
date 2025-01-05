@@ -24,6 +24,10 @@ extract_reefs(
 \item{fun}{see ?exact_extract for details}
 
 \item{weights}{see ?exact_extract for details}
+
+\item{timeseries}{time series}
+
+\item{varname}{varname}
 }
 \value{
 Shapefile \code{sf} object with SST details or \code{data.frame} (see above for details).

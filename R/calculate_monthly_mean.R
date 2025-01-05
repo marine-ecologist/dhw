@@ -7,6 +7,7 @@
 #'
 #' @param sst_file SpatRaster of SST data.
 #' @param return Type of output: "predict", "slope", or "intercept".
+#' @param midpoint recentered date, see vignette
 #' @returns Climatology as a terra::rast object.
 #' @export
 #'

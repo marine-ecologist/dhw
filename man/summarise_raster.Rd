@@ -4,10 +4,12 @@
 \alias{summarise_raster}
 \title{Summarise rasters to year}
 \usage{
-summarise_raster(input, index, fun, cores = 1, na.rm = TRUE)
+summarise_raster(input, index, fun, cores = 1, na.rm = TRUE, overwrite)
 }
 \arguments{
 \item{input}{Input raster data.}
+
+\item{index}{options for time, see above}
 
 \item{fun}{summarise function see above)}
 
@@ -15,7 +17,7 @@ summarise_raster(input, index, fun, cores = 1, na.rm = TRUE)
 
 \item{na.rm}{see tapp() for details}
 
-\item{overwrite}{see tapp() for details, set as TRUE by default}
+\item{overwrite}{logical. If TRUE, filename is overwritten}
 }
 \value{
 summarise raster
