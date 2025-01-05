@@ -15,18 +15,23 @@
 <url><loc>https://marine-ecologist.github.io/dhw/reference/calculate_hotspots.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/calculate_maximum_monthly_mean.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/calculate_monthly_mean.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/dhw/reference/check_missing_dates.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/create_climatology.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/download_CoralTemp.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/download_ERA5.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/download_OISST.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/download_gbr_spatial.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/dhw/reference/download_nc_file_CRW.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/dhw/reference/download_nc_file_OISST.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/extract_reefs.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/index.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/pipe.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/plot2.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/plot_mm.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/plot_year.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/dhw/reference/process_CoralTemp.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/process_ERA5.html</loc></url>
+<url><loc>https://marine-ecologist.github.io/dhw/reference/process_OISST.html</loc></url>
 <url><loc>https://marine-ecologist.github.io/dhw/reference/summarise_raster.html</loc></url>
 </urlset>
 
