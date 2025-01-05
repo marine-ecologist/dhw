@@ -75,7 +75,7 @@ process_ERA5 <- function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALSE,
   polygon <- polygon |> sf::st_transform(crs(ecmwfr_combined))
 
   if (isTRUE(mask)){
-    ecmwfr_combined <- terra::mask(ecmwfr_combined, poly)
+    ecmwfr_combined <- terra::mask(ecmwfr_combined, polygon)
   }
   if (isTRUE(crop)){
     ecmwfr_combined <- terra::crop(ecmwfr_combined, polygon)
