@@ -130,7 +130,8 @@ Reef.</p>
 <p><a href="https://researchdata.edu.au/complete-great-barrier-tsra-gbrmpa/675397" class="external-link">Complete
 Great Barrier Reef (GBR) Island and Reef Feature boundaries including
 Torres Strait Version 1b (NESP TWQ 3.13, AIMS, TSRA, GBRMPA)</a></p>
-<p>Either combined or</p>
+<p>The function returns either “hull” (convex hull around reefs), “base”
+(basic with no changes), or “combined” (polygons merged to reef ID)</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#gbr_reefs &lt;- download_gbr_spatial(return="combined")</span></span>
@@ -210,7 +211,11 @@ Torres Strait Version 1b (NESP TWQ 3.13, AIMS, TSRA, GBRMPA)</a></p>
 <span><span class="co">#&gt; 7  Papua-New Guinea 09355110124 POLYGON ((143.0905 -9.38934...</span></span>
 <span><span class="co">#&gt; 8  Papua-New Guinea 09355110125 POLYGON ((143.1675 -9.40401...</span></span>
 <span><span class="co">#&gt; 9  Papua-New Guinea 09355110123 POLYGON ((143.0739 -9.39021...</span></span>
-<span><span class="co">#&gt; 10        Australia 09373110100 POLYGON ((142.9353 -9.77388...</span></span></code></pre></div>
+<span><span class="co">#&gt; 10        Australia 09373110100 POLYGON ((142.9353 -9.77388...</span></span>
+<span></span>
+<span><span class="va">GBR_hull</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/download_gbr_spatial.html">download_gbr_spatial</a></span><span class="op">(</span>return<span class="op">=</span><span class="st">"hull"</span>, crs <span class="op">=</span> <span class="st">"EPSG:7844"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Downloading spatial data...</span></span>
+<span><span class="co">#&gt; Reading and transforming shapefile...</span></span></code></pre></div>
 <p>Set up a boundary to mask the raster data by buffering a 1km concave
 hull surrounding the GBR Reefs:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -255,9 +260,36 @@ and ERA5 datasets at global scales:</p>
 <span>                   end_date <span class="op">=</span> <span class="st">"2024-12-31"</span>,</span>
 <span>                   dest_dir <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/CRW/2024/"</span>,</span>
 <span>                   variable <span class="op">=</span> <span class="st">"sst"</span>,</span>
+<span>                   mc.cores <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/download_CoralTemp.html">download_CoralTemp</a></span><span class="op">(</span>url <span class="op">=</span> <span class="st">"https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw/5km/v3.1/nc/v1.0/daily/"</span>,</span>
+<span>                   start_date <span class="op">=</span> <span class="st">"2024-01-01"</span>,</span>
+<span>                   end_date <span class="op">=</span> <span class="st">"2024-12-31"</span>,</span>
+<span>                   dest_dir <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/CRW/2024/"</span>,</span>
+<span>                   variable <span class="op">=</span> <span class="st">"dhw"</span>,</span>
 <span>                   mc.cores <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <p>the full global dataset for four variables (sst, ssta, hs, dhw) is
 520.78GB in individual ~10-11MB .nc files.</p>
+<p><code>process_CoralTemp</code> does three functions: 1) crop-mask to
+a polygon shape (here the GBR hull), 2) combine <code>rast</code> files
+using <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code>, 3) output to an <code>.rds</code> file for
+saving. The function will be paralellised (later) as it is
+<em>slow</em></p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="../reference/process_CoralTemp.html">process_CoralTemp</a></span><span class="op">(</span>input <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/CRW/CRW_SST"</span>,</span>
+<span>                  polygon <span class="op">=</span> <span class="va">GBR_hull</span>, crs <span class="op">=</span> <span class="st">"EPSG:7844"</span>,</span>
+<span>                  combinedfilename <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/summaries/GBR_CoralTemp_full.rds"</span>,</span>
+<span>                  crop<span class="op">=</span><span class="cn">TRUE</span>, mask<span class="op">=</span><span class="cn">TRUE</span>, downsample<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">GBR_CoralTemp_full</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rspatial.github.io/terra/reference/serialize.html" class="external-link">readRDS</a></span><span class="op">(</span> <span class="st">"/Volumes/Extreme_SSD/dhw/summaries/GBR_CoralTemp_full.rds"</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/process_CoralTemp.html">process_CoralTemp</a></span><span class="op">(</span>input <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/CRW/CRW_DHW"</span>,</span>
+<span>                  polygon <span class="op">=</span> <span class="va">GBR_hull</span>, crs <span class="op">=</span> <span class="st">"EPSG:7844"</span>,</span>
+<span>                  combinedfilename <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/summaries/GBR_CoralTemp_DHW_full.rds"</span>,</span>
+<span>                  crop<span class="op">=</span><span class="cn">TRUE</span>, mask<span class="op">=</span><span class="cn">TRUE</span>, downsample<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>Alternatively, <code>cdo</code> offers a much faster workflow using
 <code>cdo mergetime *.nc outfile</code> and cropped to the GBR extent
 using<code>remapbil,target_grid_file.nc input.nc regridded_output.nc</code>
@@ -269,100 +301,29 @@ remapbil sets to the extent (bbox).</p>
 </h4>
 <p><code><a href="../reference/download_OISST.html">download_OISST()</a></code> pulls global data from the
 <code>ncei</code> https as follows:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span></span>
-<span></span>
 <span><span class="fu"><a href="../reference/download_OISST.html">download_OISST</a></span><span class="op">(</span>url <span class="op">=</span> <span class="st">"https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/"</span>,</span>
-<span>               start_date <span class="op">=</span> <span class="st">"2024-01-01"</span>,</span>
-<span>               end_date <span class="op">=</span> <span class="st">"2024-12-31"</span>,</span>
+<span>               start_date <span class="op">=</span> <span class="st">"2024-12-15"</span>,</span>
+<span>               end_date <span class="op">=</span> <span class="st">"2024-12-15"</span>,</span>
 <span>               dest_dir <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/OISST/2024/"</span>,</span>
 <span>               mc.cores <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
 <p>the full global dataset is 26.39GB in individual ~10-11MB .nc
 files.</p>
-<p>as with CoralTemp, the output rasters can be merged by time using
-<code>terra::mosaic(rasters)</code> and <code><a href="https://rspatial.github.io/terra/reference/crop.html" class="external-link">terra::crop()</a></code>.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<p><code>process_OISST</code> does three functions: 1) crop-mask to a
+polygon shape (here the GBR hull), 2) combine <code>rast</code> files
+using <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code>, 3) output to an <code>.rds</code> file for
+saving. The function will be paralellised (later) as it is
+<em>slow</em></p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">process_OISST</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">input</span>, <span class="va">output</span>, <span class="va">variable</span> <span class="op">=</span> <span class="st">"sst"</span>, <span class="va">combinedfilename</span> <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co"># Ensure the output directory exists</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="va">output</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span>  </span>
-<span>  </span>
-<span>  <span class="va">temp_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"gbr_reefs_shp.gpkg"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/process_OISST.html">process_OISST</a></span><span class="op">(</span>input <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/OISST/"</span>,</span>
+<span>              polygon <span class="op">=</span> <span class="va">GBR_hull</span>, crs <span class="op">=</span> <span class="st">"EPSG:7844"</span>,</span>
+<span>              combinedfilename <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full.rds"</span>,</span>
+<span>              crop<span class="op">=</span><span class="cn">TRUE</span>, mask<span class="op">=</span><span class="cn">TRUE</span>, downsample<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span>  <span class="co"># Check if the file already exists</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/files.html" class="external-link">file.exists</a></span><span class="op">(</span><span class="va">temp_file</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="co"># Download and save the GBR reefs spatial data</span></span>
-<span>    <span class="va">gbr_reefs_shp</span> <span class="op">&lt;-</span> <span class="fu">dhw</span><span class="fu">::</span><span class="fu"><a href="../reference/download_gbr_spatial.html">download_gbr_spatial</a></span><span class="op">(</span>reefs <span class="op">=</span> <span class="st">""</span><span class="op">)</span></span>
-<span>    <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_write.html" class="external-link">st_write</a></span><span class="op">(</span><span class="va">gbr_reefs_shp</span>, <span class="va">temp_file</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span>  <span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
-<span>    <span class="co"># Read the existing file</span></span>
-<span>    <span class="va">gbr_reefs_shp</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_read.html" class="external-link">st_read</a></span><span class="op">(</span><span class="va">temp_file</span>, quiet<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span>  </span>
-<span>  <span class="va">gbr_reefs_hull_buffered</span> <span class="op">&lt;-</span> <span class="va">gbr_reefs_shp</span><span class="op">|&gt;</span> </span>
-<span>    <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/valid.html" class="external-link">st_make_valid</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">FEAT_NAME</span> <span class="op"><a href="https://rspatial.github.io/terra/reference/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Reef"</span>, <span class="st">"Terrestrial Reef"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu">concaveman</span><span class="fu">::</span><span class="fu"><a href="https://joelgombin.github.io/concaveman/reference/concaveman.html" class="external-link">concaveman</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/valid.html" class="external-link">st_make_valid</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>    <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_unary.html" class="external-link">st_buffer</a></span><span class="op">(</span><span class="fl">1000</span><span class="op">)</span> </span>
-<span>  </span>
-<span>  <span class="co"># List all .nc files recursively</span></span>
-<span>  <span class="va">rlist</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span>path <span class="op">=</span> <span class="va">input</span>, </span>
-<span>                      pattern <span class="op">=</span> <span class="st">"\\.nc$"</span>, </span>
-<span>                      recursive <span class="op">=</span> <span class="cn">TRUE</span>, </span>
-<span>                      full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># Initialize list for processed rasters</span></span>
-<span>  <span class="va">processed_rasters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
-<span>  </span>
-<span>  <span class="co"># Process each file</span></span>
-<span>  <span class="kw">for</span> <span class="op">(</span><span class="va">file</span> <span class="kw">in</span> <span class="va">rlist</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="co"># Read raster</span></span>
-<span>    <span class="va">r</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="va">file</span><span class="op">)</span></span>
 <span></span>
-<span>    <span class="co"># Filter to include only 'sst_zlev=0'</span></span>
-<span>    <span class="va">r</span> <span class="op">&lt;-</span> <span class="va">r</span><span class="op">[[</span><span class="st">"sst_zlev=0"</span><span class="op">]</span><span class="op">]</span></span>
-<span></span>
-<span>    <span class="co"># Set variable name and time dimension</span></span>
-<span>    </span>
-<span>    <span class="fu"><a href="https://rspatial.github.io/terra/reference/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/time.html" class="external-link">time</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="co"># Crop raster to GBR region</span></span>
-<span>    <span class="va">cropped_r</span> <span class="op">&lt;-</span> <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crop.html" class="external-link">crop</a></span><span class="op">(</span><span class="va">r</span>, <span class="va">gbr_reefs_hull_buffered</span><span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="co"># Extract just the filename</span></span>
-<span>    <span class="va">filename</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/basename.html" class="external-link">basename</a></span><span class="op">(</span><span class="va">file</span><span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="co"># Create the new output path in the output folder</span></span>
-<span>    <span class="va">new_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">output</span>, <span class="va">filename</span><span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="co"># Save the cropped raster</span></span>
-<span>   <span class="co"># terra::writeRaster(cropped_r, new_path, overwrite = TRUE)</span></span>
-<span>    </span>
-<span>    <span class="co"># Add processed raster to list</span></span>
-<span>    <span class="va">processed_rasters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">processed_rasters</span>, <span class="va">cropped_r</span><span class="op">)</span></span>
-<span>    </span>
-<span>    <span class="co"># Print status</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Processed:"</span>, <span class="va">new_path</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span>  </span>
-<span>  <span class="co"># Combine all processed rasters into a single file if specified</span></span>
-<span>  <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NULL.html" class="external-link">is.null</a></span><span class="op">(</span><span class="va">combinedfilename</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    </span>
-<span>    <span class="va">combined_raster</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">c</span>, <span class="va">processed_rasters</span><span class="op">)</span> <span class="co"># Combine all rasters</span></span>
-<span>    <span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/writeRaster.html" class="external-link">writeRaster</a></span><span class="op">(</span><span class="va">combined_raster</span>, <span class="va">combinedfilename</span>, overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Combined raster saved to:"</span>, <span class="va">combinedfilename</span>, <span class="st">"\n"</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span>  </span>
-<span>  </span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="fu"><a href="../reference/process_OISST.html">process_OISST</a></span><span class="op">(</span>input <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/global"</span>,</span>
-<span>  <span class="co">#            output = "/Volumes/Extreme_SSD/dhw/gbr",</span></span>
-<span>              combinedfilename <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/gbr/GBR_OISST_full.nc"</span>,</span>
-<span>              variable <span class="op">=</span> <span class="st">"sst"</span><span class="op">)</span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="st">"/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full.rds"</span><span class="op">)</span></span>
 <span>  </span></code></pre></div>
 <p>Alternatively, <code>cdo</code> offers a much faster workflow using
 <code>cdo mergetime *.nc outfile</code> and cropped to the GBR extent
@@ -379,10 +340,10 @@ aware. The <code><a href="../reference/download_ERA5.html">download_ERA5()</a></
 access the daily SST data via <a href="https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels" class="external-link">Copernicus</a>.
 Once downloaded, the <code><a href="../reference/process_ERA5.html">process_ERA5()</a></code> function combines the
 outputs to a single <code>rast</code> file.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/download_ERA5.html">download_ERA5</a></span><span class="op">(</span></span>
-<span>    start_year <span class="op">=</span> <span class="fl">2024</span>,</span>
+<span>    start_year <span class="op">=</span> <span class="fl">1940</span>,</span>
 <span>    end_year <span class="op">=</span> <span class="fl">2024</span>,</span>
 <span>    ecmwfr_key <span class="op">=</span> <span class="st">"381246a1-68c9-4e99-aab2-44c36d6da73d"</span>,</span>
 <span>    timeout<span class="op">=</span><span class="fl">60</span>,</span>
@@ -390,7 +351,13 @@ outputs to a single <code>rast</code> file.</p>
 <span>  <span class="op">)</span></span>
 <span>  </span>
 <span>  </span>
-<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/process_ERA5.html">process_ERA5</a></span><span class="op">(</span>folder <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/ERA5/gbr/"</span>, units <span class="op">=</span> <span class="st">"celsius"</span><span class="op">)</span></span></code></pre></div>
+<span></span>
+<span><span class="fu"><a href="../reference/process_ERA5.html">process_ERA5</a></span><span class="op">(</span>input <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/ERA5/"</span>, units <span class="op">=</span> <span class="st">"celsius"</span>,</span>
+<span>              polygon <span class="op">=</span> <span class="va">GBR_hull</span>, crs <span class="op">=</span> <span class="st">"EPSG:7844"</span>,</span>
+<span>              combinedfilename <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/summaries/GBR_ERA5_full.rds"</span>,</span>
+<span>              crop<span class="op">=</span><span class="cn">TRUE</span>, mask<span class="op">=</span><span class="cn">TRUE</span>, downsample<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="st">"/Volumes/Extreme_SSD/dhw/summaries/GBR_ERA5_full.rds"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
