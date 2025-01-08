@@ -12,3 +12,4 @@ code/
 vignettes/*.Rmd.cache/
 **/*_cache/
 **/*_cache/**
+*_cache*/

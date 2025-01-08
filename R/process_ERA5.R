@@ -72,7 +72,7 @@ process_ERA5 <- function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALSE,
   }
 
   ecmwfr_combined
-  polygon <- polygon |> sf::st_transform(crs(ecmwfr_combined))
+  polygon <- polygon |> sf::st_transform(terra::crs(ecmwfr_combined))
 
   if (isTRUE(mask)){
     ecmwfr_combined <- terra::mask(ecmwfr_combined, polygon)
@@ -81,7 +81,7 @@ process_ERA5 <- function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALSE,
     ecmwfr_combined <- terra::crop(ecmwfr_combined, polygon)
   }
   if (isTRUE(downsample)){
-    target <- terra::rast(terra::ext(ecmwfr_combined), resolution = res, crs = crs(ecmwfr_combined))
+    target <- terra::rast(terra::ext(ecmwfr_combined), resolution = res, crs = terra::crs(ecmwfr_combined))
     ecmwfr_combined <- terra::resample(ecmwfr_combined, target, method = "bilinear")
   }
 

@@ -64,10 +64,11 @@ process_OISST <-  function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALS
   for (file in rlist) {
 
     r <- terra::rast(file)
-    r <- r[[1]] # get first var
+    #r <- r[[4]] # get fourth var (anom_zlev=0, err_zlev=0, ice_zlev=0, sst_zlev=0)
+    r <- r[['sst_zlev=0']]
     names(r) <- as.Date(terra::time(r))
 
-    polygon <- polygon |> sf::st_transform(crs(r))
+    polygon <- polygon |> sf::st_transform(terra::crs(r))
 
 
     if (isTRUE(mask)){
@@ -77,7 +78,7 @@ process_OISST <-  function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALS
       r <- terra::crop(r, polygon)
     }
     if (isTRUE(downsample)){
-      target <- terra::rast(terra::ext(r), resolution = res, crs = crs(r))
+      target <- terra::rast(terra::ext(r), resolution = res, crs = terra::crs(r))
       r <- terra::resample(r, target, method = "bilinear")
     }
 

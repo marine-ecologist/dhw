@@ -67,7 +67,7 @@ process_CoralTemp <-  function(input, polygon, crop=TRUE, mask=TRUE, downsample=
     r <- r[[1]] # get first var
     names(r) <- as.Date(terra::time(r))
 
-    polygon <- polygon |> sf::st_transform(crs(r))
+    polygon <- polygon |> sf::st_transform(terra::crs(r))
 
     if (isTRUE(mask)){
       r <- terra::mask(r, polygon)

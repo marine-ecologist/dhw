@@ -31,7 +31,7 @@ for metadata see here:
 
 [Complete Great Barrier Reef (GBR) Island and Reef Feature boundaries including Torres Strait Version 1b (NESP TWQ 3.13, AIMS, TSRA, GBRMPA)](https://researchdata.edu.au/complete-great-barrier-tsra-gbrmpa/675397)
 
-Either combined or
+The function returns either "hull" (convex hull around reefs), "base" (basic with no changes), or "combined" (polygons merged to reef ID) 
 
 ```{r, eval=TRUE}
 
@@ -39,6 +39,8 @@ Either combined or
 gbr_reefs <- download_gbr_spatial(return="base")
 
 gbr_reefs
+
+GBR_hull <- download_gbr_spatial(return="hull", crs = "EPSG:7844")
 
 ```
 
@@ -88,21 +90,41 @@ download_CoralTemp(url = "https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw
                    mc.cores = 1)
 
 
+download_CoralTemp(url = "https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw/5km/v3.1/nc/v1.0/daily/",
+                   start_date = "2024-01-01",
+                   end_date = "2024-12-31",
+                   dest_dir = "/Volumes/Extreme_SSD/dhw/CRW/2024/",
+                   variable = "dhw",
+                   mc.cores = 1)
+
 
 ```
 
 the full global dataset for four variables (sst, ssta, hs, dhw) is 520.78GB in individual ~10-11MB .nc files. 
 
 
-Alternatively, `cdo` offers a much faster workflow using `cdo mergetime *.nc outfile` and cropped to the GBR extent using`remapbil,target_grid_file.nc input.nc regridded_output.nc` (note: CDO does not directly support cropping to irregular polygons, so remapbil sets to the extent (bbox).
+`process_CoralTemp` does three functions: 1) crop-mask to a polygon shape (here the GBR hull), 2) combine `rast` files using `c()`, 3) output to an `.rds` file for saving. The function will be paralellised (later) as it is *slow*
 
 
 ```{r, eval=FALSE}
 
+process_CoralTemp(input = "/Volumes/Extreme_SSD/dhw/CRW/CRW_SST",
+                  polygon = GBR_hull, crs = "EPSG:7844",
+                  combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_CoralTemp_full.rds",
+                  crop=TRUE, mask=TRUE, downsample=FALSE)
+
+GBR_CoralTemp_full <- readRDS( "/Volumes/Extreme_SSD/dhw/summaries/GBR_CoralTemp_full.rds")
+
+
+process_CoralTemp(input = "/Volumes/Extreme_SSD/dhw/CRW/CRW_DHW",
+                  polygon = GBR_hull, crs = "EPSG:7844",
+                  combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_CoralTemp_DHW_full.rds",
+                  crop=TRUE, mask=TRUE, downsample=FALSE)
 
 ```
 
 
+Alternatively, `cdo` offers a much faster workflow using `cdo mergetime *.nc outfile` and cropped to the GBR extent using`remapbil,target_grid_file.nc input.nc regridded_output.nc` (note: CDO does not directly support cropping to irregular polygons, so remapbil sets to the extent (bbox).
 
 #### Extract OISST
 
@@ -111,11 +133,9 @@ Alternatively, `cdo` offers a much faster workflow using `cdo mergetime *.nc out
 
 ```{r, eval=FALSE}
 
-
-
 download_OISST(url = "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/",
-               start_date = "2024-01-01",
-               end_date = "2024-12-31",
+               start_date = "2024-12-15",
+               end_date = "2024-12-15",
                dest_dir = "/Volumes/Extreme_SSD/dhw/OISST/2024/",
                mc.cores = 12)
 
@@ -124,89 +144,17 @@ download_OISST(url = "https://www.ncei.noaa.gov/data/sea-surface-temperature-opt
 
 the full global dataset is 26.39GB in individual ~10-11MB .nc files. 
 
-as with CoralTemp, the output rasters can be merged by time using `terra::mosaic(rasters)` and `terra::crop()`. 
+`process_OISST` does three functions: 1) crop-mask to a polygon shape (here the GBR hull), 2) combine `rast` files using `c()`, 3) output to an `.rds` file for saving. The function will be paralellised (later) as it is *slow*
 
 ```{r, eval=FALSE}
 
-process_OISST <- function(input, output, variable = "sst", combinedfilename = NULL) {
-  # Ensure the output directory exists
-  dir.create(output, recursive = TRUE, showWarnings = FALSE)
-  
-  
-  temp_file <- file.path(tempdir(), "gbr_reefs_shp.gpkg")
+process_OISST(input = "/Volumes/Extreme_SSD/dhw/OISST/",
+              polygon = GBR_hull, crs = "EPSG:7844",
+              combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full.rds",
+              crop=TRUE, mask=TRUE, downsample=FALSE)
 
-  # Check if the file already exists
-  if (!file.exists(temp_file)) {
-    # Download and save the GBR reefs spatial data
-    gbr_reefs_shp <- dhw::download_gbr_spatial(reefs = "")
-    sf::st_write(gbr_reefs_shp, temp_file, overwrite = TRUE, quiet=TRUE)
-  } else {
-    # Read the existing file
-    gbr_reefs_shp <- sf::st_read(temp_file, quiet=TRUE)
-  }
-  
-  gbr_reefs_hull_buffered <- gbr_reefs_shp|> 
-    sf::st_make_valid() |> 
-    dplyr::filter(FEAT_NAME %in% c("Reef", "Terrestrial Reef")) |> 
-    concaveman::concaveman() |> 
-    sf::st_make_valid() |> 
-    sf::st_buffer(1000) 
-  
-  # List all .nc files recursively
-  rlist <- list.files(path = input, 
-                      pattern = "\\.nc$", 
-                      recursive = TRUE, 
-                      full.names = TRUE)
-  
-  # Initialize list for processed rasters
-  processed_rasters <- list()
-  
-  # Process each file
-  for (file in rlist) {
-    # Read raster
-    r <- terra::rast(file)
 
-    # Filter to include only 'sst_zlev=0'
-    r <- r[["sst_zlev=0"]]
-
-    # Set variable name and time dimension
-    
-    names(r) <- terra::time(r)
-    
-    # Crop raster to GBR region
-    cropped_r <- terra::crop(r, gbr_reefs_hull_buffered)
-    
-    # Extract just the filename
-    filename <- basename(file)
-    
-    # Create the new output path in the output folder
-    new_path <- file.path(output, filename)
-    
-    # Save the cropped raster
-   # terra::writeRaster(cropped_r, new_path, overwrite = TRUE)
-    
-    # Add processed raster to list
-    processed_rasters <- c(processed_rasters, cropped_r)
-    
-    # Print status
-    cat("Processed:", new_path, "\n")
-  }
-  
-  # Combine all processed rasters into a single file if specified
-  if (!is.null(combinedfilename)) {
-    
-    combined_raster <- do.call(c, processed_rasters) # Combine all rasters
-    terra::writeRaster(combined_raster, combinedfilename, overwrite = TRUE)
-    cat("Combined raster saved to:", combinedfilename, "\n")
-  }
-  
-  
-}
-
-process_OISST(input = "/Volumes/Extreme_SSD/dhw/global",
-  #            output = "/Volumes/Extreme_SSD/dhw/gbr",
-              combinedfilename = "/Volumes/Extreme_SSD/dhw/gbr/GBR_OISST_full.nc",
-              variable = "sst")
+terra::rast("/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full.rds")
   
 ```
 
@@ -220,7 +168,7 @@ ERA5 doesn't have a direct `https` link as far as I'm aware. The `download_ERA5(
 ```{r, eval=FALSE}
 
 download_ERA5(
-    start_year = 2024,
+    start_year = 1940,
     end_year = 2024,
     ecmwfr_key = "381246a1-68c9-4e99-aab2-44c36d6da73d",
     timeout=60,
@@ -228,7 +176,13 @@ download_ERA5(
   )
   
   
-tmp <- process_ERA5(folder = "/Volumes/Extreme_SSD/dhw/ERA5/gbr/", units = "celsius")
+
+process_ERA5(input = "/Volumes/Extreme_SSD/dhw/ERA5/", units = "celsius",
+              polygon = GBR_hull, crs = "EPSG:7844",
+              combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_ERA5_full.rds",
+              crop=TRUE, mask=TRUE, downsample=FALSE)
+
+terra::rast("/Volumes/Extreme_SSD/dhw/summaries/GBR_ERA5_full.rds")
 
 
 

@@ -89,7 +89,7 @@ download_gbr_spatial <- function(crs = "EPSG:4283", return="base") {
       concaveman::concaveman() |>
       sf::st_make_valid() |>
       sf::st_buffer(1000) |>
-      st_transform(crs)
+      sf::st_transform(crs)
 
     return(gbr_hull)
 

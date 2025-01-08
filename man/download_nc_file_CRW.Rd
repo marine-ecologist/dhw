@@ -4,7 +4,7 @@
 \alias{download_nc_file_CRW}
 \title{Download nc files}
 \usage{
-download_nc_file_CRW(date, base_url, dest_dir)
+download_nc_file_CRW(date, base_url, dest_dir, variable)
 }
 \arguments{
 \item{date}{date in ""}

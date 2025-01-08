@@ -27,7 +27,7 @@
 
 
 # Helper function to download a single file
-download_nc_file_CRW <- function(date, base_url, dest_dir) {
+download_nc_file_CRW <- function(date, base_url, dest_dir, variable) {
   # Format date
   date <- gsub("-", "", date)
   year <- substr(date, 1, 4)
