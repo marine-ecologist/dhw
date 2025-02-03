@@ -16,5 +16,6 @@ calculate_maximum_monthly_mean <- function(mm) {
     return(base::max(x, na.rm = TRUE))
   })
   terra::varnames(mmm) <- "mmm_anom"
+  names(mmm) <- "mmm"
   return(mmm)
 }

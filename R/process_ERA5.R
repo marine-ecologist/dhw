@@ -85,7 +85,7 @@ process_ERA5 <- function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALSE,
     ecmwfr_combined <- terra::resample(ecmwfr_combined, target, method = "bilinear")
   }
 
-  saveRDS(terra::wrap(ecmwfr_combined), combinedfilename)
+  terra::writeRaster(combined_raster, combinedfilename)
 
   # Return the combined raster
   return(ecmwfr_combined)

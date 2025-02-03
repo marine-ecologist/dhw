@@ -20,44 +20,41 @@
 
 #' See vignette for further details.
 #'
-#' @param hotspots hotspots
+#' @param hs hotspots
 #' @param dhw dhw
 #' @returns degree heating weeks (terra::rast format)
 #'
 #' @export
 #'
-calculate_baa <- function(hotspots, dhw) {
+calculate_baa <- function(hs, dhw) {
 
-  hotspotdhw <- terra::sds(hotspots, dhw)
+    hotspotdhw <- terra::sds(hs, dhw)
 
-  categorize_baa <- function(hs, dhw) {
-    if (hs <= 0) {
-      return(0)  # No Stress
-    } else if (hs < 1 & dhw < 4) {
-      return(1)  # Bleaching Watch
-    } else if (hs >= 1 & dhw < 4) {
-      return(2)  # Bleaching Warning
-    } else if (hs >= 1 & dhw >= 4 & dhw < 8) {
-      return(3)  # Bleaching Alert Level 1
-    } else if (hs >= 1 & dhw >= 8 & dhw < 12) {
-      return(4)  # Bleaching Alert Level 2
-    } else if (hs >= 1 & dhw >= 12 & dhw < 16) {
-      return(5)  # Bleaching Alert Level 3
-    } else if (hs >= 1 & dhw >= 16 & dhw < 20) {
-      return(6)  # Bleaching Alert Level 4
-    } else if (hs >= 1 & dhw >= 20) {
-      return(7)  # Bleaching Alert Level 5
-    } else {
-      return(NA) # Missing or undefined case
+    # Vectorized categorization function
+    categorize_baa <- function(hs, dhw) {
+      # Vectorized NA handling
+      result <- rep(NA, length(hs)) # Initialize output
+
+      result[hs <= 0] <- 0  # No Stress
+      result[hs > 0 & hs < 1 & dhw < 4] <- 1  # Bleaching Watch
+      result[hs >= 1 & dhw < 4] <- 2  # Bleaching Warning
+      result[hs >= 1 & dhw >= 4 & dhw < 8] <- 3  # Bleaching Alert Level 1
+      result[hs >= 1 & dhw >= 8 & dhw < 12] <- 4 # Bleaching Alert Level 2
+      result[hs >= 1 & dhw >= 12 & dhw < 16] <- 5 # Bleaching Alert Level 3
+      result[hs >= 1 & dhw >= 16 & dhw < 20] <- 6 # Bleaching Alert Level 4
+      result[hs >= 1 & dhw >= 20] <- 7  # Bleaching Alert Level 5
+
+      return(result)
     }
-  }
 
-  baa <- terra::app(
-    hotspotdhw,
-    fun = function(x) categorize_baa(x[1], x[2])
-  )
 
-  terra::varnames(baa) <- "Bleaching Alert Area"
-  return(baa)
+    baa <- terra::app(
+      hotspotdhw,
+      fun = function(x) categorize_baa(x[1], x[2])
+    )
+
+    terra::varnames(baa) <- "Bleaching Alert Area"
+    return(baa)
 
 }
+

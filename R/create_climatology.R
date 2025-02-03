@@ -14,17 +14,22 @@
 #' - output$hs
 #' - output$dhw
 #'
+#' note - calculating BAA is slow
+#'
 #' @param sst_file input
 #' @param window number of days for the DHW sum (12 weeks = 84 days default)
 #' @param quiet verbose - update with messages?
-#' @param baa return baa? TRUE/FALSE
+#' @param return return output TRUE/FALSE
+#' @param baa return baa? TRUE/FALSE (speeds up processing)
+#' @param save_output save output? "folder/filename" format where "folder/filename_sst.tif", "folder/filename_dhw.tif" etc
+#' @param climatology replace mmm with external climatology? link to .nc, explicit for CRW (i.e. "GBR_ct5km_climatology_v3.1.nc")
 #' @returns output list (see above for details)
 #' @examples
 #' \dontrun{
 #' output <- create_climatology("crw.nc")
 #' }
 #' @export
-create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa = FALSE) {
+create_climatology <- function(sst_file, window = 84, quiet = FALSE, return=FALSE, baa = FALSE, save_output=NULL, climatology=NULL) {
   cat("--- create_climatology ---\n")
 
   start_time <- Sys.time()
@@ -50,8 +55,7 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa = FALSE
     print_elapsed_time("Processing Daily Climatology")
   }
 
-
-  daily_climatology <- calculate_daily_climatology(sst_file, mm)
+    daily_climatology <- calculate_daily_climatology(sst_file, mm)
 
   if (!quiet) {
     print_elapsed_time("Processing SST Anomalies")
@@ -63,8 +67,18 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa = FALSE
     print_elapsed_time("Processing HotSpots (HS)")
   }
 
+  if (!is.null(climatology)){
 
-  hotspots <- calculate_hotspots(mmm, sst_file)
+    mmm2 <- terra::rast(climatology)
+    mmm2 <- crop(mmm2, mmm)
+    print(mmm2)
+    hotspots <- calculate_hotspots(mmm2, sst_file)
+
+  } else {
+
+    hotspots <- calculate_hotspots(mmm, sst_file)
+
+  }
 
   if (!quiet) {
     print_elapsed_time("Processing Degree Heating Weeks (DHW)")
@@ -84,33 +98,52 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE, baa = FALSE
     print_elapsed_time("Combining outputs")
   }
 
-
   names(sst_file) <- terra::time(sst_file)
 
-  if (baa) {
-    output <- base::list(
-      sst = sst_file,
-      mm = mm,
-      mmm = mmm,
-      climatology = daily_climatology,
-      anomaly = anomaly,
-      hotspots = hotspots,
-      dhw = dhw,
-      baa = baa
-    )
-  } else {
-    output <-
-      base::list(
+    if (isTRUE(baa)) {
+
+      output <- base::list(
         sst = sst_file,
         mm = mm,
         mmm = mmm,
         climatology = daily_climatology,
         anomaly = anomaly,
         hotspots = hotspots,
-        dhw = dhw
+        dhw = dhw,
+        baa = baa
       )
+
+    } else {
+
+      output <-
+        base::list(
+          sst = sst_file,
+          mm = mm,
+          mmm = mmm,
+          climatology = daily_climatology,
+          anomaly = anomaly,
+          hotspots = hotspots,
+          dhw = dhw
+        )
+
+    }
+
+  print_elapsed_time("Combining outputs")
+
+  if (!is.null(save_output)){
+    terra::writeRaster(sst_file, paste0(save_output, "_sst.tif"), overwrite=TRUE)
+    terra::writeRaster(mm, paste0(save_output, "_mm.tif"), overwrite=TRUE)
+    terra::writeRaster(mmm, paste0(save_output, "_mmm.tif"), overwrite=TRUE)
+    terra::writeRaster(daily_climatology, paste0(save_output, "_climatology.tif"), overwrite=TRUE)
+    terra::writeRaster(anomaly, paste0(save_output, "_anomaly.tif"), overwrite=TRUE)
+    terra::writeRaster(hotspots, paste0(save_output, "_hotspots.tif"), overwrite=TRUE)
+    terra::writeRaster(dhw, paste0(save_output, "_dhw.tif"), overwrite=TRUE)
+    if (isTRUE(baa)){
+      terra::writeRaster(baa, paste0(save_output, "_baa.tif"))
+    }
+
   }
 
+
   return(output)
-  print_elapsed_time("Combining outputs")
 }

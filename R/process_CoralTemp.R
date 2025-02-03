@@ -91,7 +91,7 @@ process_CoralTemp <-  function(input, polygon, crop=TRUE, mask=TRUE, downsample=
 
   combined_raster <- do.call(c, processed_rasters) %>%
     terra::project(., crs)
-  saveRDS(terra::wrap(combined_raster), combinedfilename)
+  terra::writeRaster(combined_raster, combinedfilename)
 
   cat("Combined raster saved to:", combinedfilename, "\n")
 

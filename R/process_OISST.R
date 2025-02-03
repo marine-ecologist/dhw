@@ -89,7 +89,7 @@ process_OISST <-  function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALS
   cat("Combining rasters")
 
   combined_raster <- do.call(c, processed_rasters)
-  saveRDS(terra::wrap(combined_raster), combinedfilename)
+  terra::writeRaster(combined_raster, combinedfilename)
 
   cat("Combined raster saved to:", combinedfilename, "\n")
 
