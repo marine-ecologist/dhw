@@ -4,10 +4,10 @@
 \alias{calculate_baa}
 \title{Calculate BAA}
 \usage{
-calculate_baa(hotspots, dhw)
+calculate_baa(hs, dhw)
 }
 \arguments{
-\item{hotspots}{hotspots}
+\item{hs}{hotspots}
 
 \item{dhw}{dhw}
 }

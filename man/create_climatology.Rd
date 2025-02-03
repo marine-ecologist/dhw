@@ -4,7 +4,15 @@
 \alias{create_climatology}
 \title{Create climatology}
 \usage{
-create_climatology(sst_file, window = 84, quiet = FALSE, baa = FALSE)
+create_climatology(
+  sst_file,
+  window = 84,
+  quiet = FALSE,
+  return = FALSE,
+  baa = FALSE,
+  save_output = NULL,
+  climatology = NULL
+)
 }
 \arguments{
 \item{sst_file}{input}
@@ -13,7 +21,13 @@ create_climatology(sst_file, window = 84, quiet = FALSE, baa = FALSE)
 
 \item{quiet}{verbose - update with messages?}
 
-\item{baa}{return baa? TRUE/FALSE}
+\item{return}{return output TRUE/FALSE}
+
+\item{baa}{return baa? TRUE/FALSE (speeds up processing)}
+
+\item{save_output}{save output? "folder/filename" format where "folder/filename_sst.tif", "folder/filename_dhw.tif" etc}
+
+\item{climatology}{replace mmm with external climatology? link to .nc, explicit for CRW (i.e. "GBR_ct5km_climatology_v3.1.nc")}
 }
 \value{
 output list (see above for details)
@@ -32,6 +46,8 @@ outputs:
 \item output$hs
 \item output$dhw
 }
+
+note - calculating BAA is slow
 }
 \examples{
 \dontrun{
