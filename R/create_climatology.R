@@ -128,7 +128,6 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE, return=FALS
 
     }
 
-  print_elapsed_time("Combining outputs")
 
   if (!is.null(save_output)){
     terra::writeRaster(sst_file, paste0(save_output, "_sst.tif"), overwrite=TRUE)
@@ -143,6 +142,8 @@ create_climatology <- function(sst_file, window = 84, quiet = FALSE, return=FALS
     }
 
   }
+
+  print_elapsed_time("Writing files")
 
 
   return(output)
