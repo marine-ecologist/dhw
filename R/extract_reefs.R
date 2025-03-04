@@ -122,7 +122,7 @@
 #'
 #' }
 #' @export
-extract_reefs <- function(input, shpfile, output = "sf", fun = "mean", weights = "area", timeseries = "daily", varname = "sst") {
+extract_reefs <- function(input, shpfile, output = "sf", fun = "mean", weights = "area", timeseries = "daily", varname = "sst", silent = TRUE) {
 
   # Reproject the input raster to match the shapefile CRS
   input <- terra::project(input, sf::st_crs(shpfile)$wkt)
@@ -130,7 +130,7 @@ extract_reefs <- function(input, shpfile, output = "sf", fun = "mean", weights =
 
   # Perform exact extraction
   extracted_output <- exactextractr::exact_extract(
-    input, shpfile, progress = TRUE, fun = fun, weights = weights,
+    input, shpfile, progress = !silent, fun = fun, weights = weights,
     append_cols = c("LABEL_ID", "GBR_NAME")
   )
 
