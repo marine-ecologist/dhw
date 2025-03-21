@@ -1,0 +1,52 @@
+---
+title: "Calculating Degree Heating Months"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calculating Degree Heating Month index}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+### Calculate DHM:
+
+The main function ``` calculate_dhm(``) ``` is a single use function that takes an input `terra::rast()` SST file in either daily or monthly format and creates Degree Heating Month (DHMs) by deriving anomalies relative to the maximum monthly mean (MMM) climatology. The function sums positive SST anomalies over a specified rolling period (defaulting to three months) and outputs the resulting raster, providing an index of accumulated thermal stress.
+ 
+
+```{r warning=FALSE, message=FALSE, fig.width=9, fig.height=4}
+
+library(dhw)
+library(terra)
+library(ggplot2)
+library(tidyverse)
+
+  
+
+lizard_dhm <- calculate_dhm(lizard_crw) 
+
+
+lizard_dhm |> as.data.frame(wide=FALSE, time=TRUE) |> ggplot() + theme_bw() + 
+  geom_line(aes(time, values))
+
+lizard_dhm |> 
+  as.data.frame(wide = FALSE, time = TRUE) |> 
+  ggplot(aes(time, values)) +
+  theme_bw() +
+  ggpattern::geom_area_pattern(
+  #  aes(pattern_fill = values),
+    pattern = "gradient",
+    pattern_angle = 90,
+    pattern_fill="white",
+    pattern_fill2="red"
+   # pattern_density = 0.5,
+    #pattern_scale = 1
+  ) +
+  geom_line(color = "black", lwd=0.5)
+
+```

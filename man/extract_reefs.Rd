@@ -11,7 +11,8 @@ extract_reefs(
   fun = "mean",
   weights = "area",
   timeseries = "daily",
-  varname = "sst"
+  varname = "sst",
+  silent = TRUE
 )
 }
 \arguments{
