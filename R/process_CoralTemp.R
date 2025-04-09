@@ -10,9 +10,6 @@
 #' Website and includes reefs from the Torres Strait. Default CRS is GDA94 (EPSG:4283)
 #'
 #'
-#' @name process_CoralTemp
-#' @title Process CoralTemp NetCDF files
-#' @description Multicore processing of CoralTemp .nc files with optional crop, mask, downsampling
 #' @param input Input folder with .nc files (flat structure, no per-year dirs)
 #' @param polygon sf polygon to crop/mask
 #' @param crs Output CRS (default EPSG:7844)

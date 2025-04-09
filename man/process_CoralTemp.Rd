@@ -47,6 +47,4 @@ function to download the GBR shape files (14.1mb in size, shp file format) via e
 Notes:
 There are several versions of the GBR reefs shape file. This version is downloaded via the eAtlas
 Website and includes reefs from the Torres Strait. Default CRS is GDA94 (EPSG:4283)
-
-Multicore processing of CoralTemp .nc files with optional crop, mask, downsampling
 }
