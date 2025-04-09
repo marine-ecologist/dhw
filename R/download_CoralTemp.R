@@ -18,6 +18,7 @@
 #' @param dest_dir Directory where NetCDF files should be saved.
 #' @param variable Data type: 'sst', 'dhw', 'ssta', or 'hs'.
 #' @param mc.cores Number of cores for parallel downloads.
+#' @param quiet show verbose? TRUE by default
 #' @returns Saves NetCDF files in the specified destination folder.
 #' @examples
 #' \dontrun{
@@ -37,7 +38,8 @@ download_CoralTemp <- function(
     end_date,
     dest_dir,
     variable = "sst",
-    mc.cores = 1
+    mc.cores = 1,
+    quiet=TRUE
 ) {
 
   # Validate the variable argument
@@ -59,11 +61,22 @@ download_CoralTemp <- function(
 
   # Parallel or sequential processing
   if (mc.cores > 1) {
-    invisible(parallel::mclapply(dates, download_nc_file_CRW,
-                       base_url = url, dest_dir = dest_dir, var = variable,
-                       mc.cores = mc.cores))
+    if (isFALSE(quiet)) {
+      invisible(parallel::mclapply(dates, download_nc_file_CRW,
+                                   base_url = url, dest_dir = dest_dir, var = variable,
+                                   mc.cores = mc.cores))
+    } else {
+      parallel::mclapply(dates, download_nc_file_CRW,
+                         base_url = url, dest_dir = dest_dir, var = variable,
+                         mc.cores = mc.cores)
+    }
   } else {
-    invisible(lapply(dates, download_nc_file_CRW,
-           base_url = url, dest_dir = dest_dir, var = variable))
+    if (isFALSE(quiet)) {
+      invisible(lapply(dates, download_nc_file_CRW,
+                       base_url = url, dest_dir = dest_dir, var = variable))
+    } else {
+      lapply(dates, download_nc_file_CRW,
+             base_url = url, dest_dir = dest_dir, var = variable)
+    }
   }
 }

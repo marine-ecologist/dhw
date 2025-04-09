@@ -10,7 +10,8 @@ download_CoralTemp(
   end_date,
   dest_dir,
   variable = "sst",
-  mc.cores = 1
+  mc.cores = 1,
+  quiet = TRUE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ download_CoralTemp(
 \item{variable}{Data type: 'sst', 'dhw', 'ssta', or 'hs'.}
 
 \item{mc.cores}{Number of cores for parallel downloads.}
+
+\item{quiet}{show verbose? TRUE by default}
 }
 \value{
 Saves NetCDF files in the specified destination folder.

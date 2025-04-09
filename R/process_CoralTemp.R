@@ -10,90 +10,78 @@
 #' Website and includes reefs from the Torres Strait. Default CRS is GDA94 (EPSG:4283)
 #'
 #'
-#' @param input input folder
-#' @param polygon polygon for crop/masl
-#' @param crs change the CRS if needed (EPSG:4283 as default)
-#' @param crop TRUE/FALSE
-#' @param mask TRUE/FALSE
-#' @param downsample TRUE/FALSE
-#' @param res resolution for downsamlpling
-#' @param variable redundant?
-#' @param combinedfilename output file path, should be .rds
-#' @returns terra::rast
-#' @examples
-#' \dontrun{
-#'
-#' GBR_hull <- download_gbr_spatial(return="hull", crs = "EPSG:7844")
-#'
-#' process_CoralTemp(input = "/Volumes/Extreme_SSD/dhw/coraltemp",
-#'                   polygon = GBR_hull, crs = "EPSG:7844",
-#'                   combinedfilename = "/Volumes/Extreme_SSD/dhw/GBR_CoralTemp_full.rds",
-#'                   crop=TRUE, mask=TRUE, downsample=FALSE)
-#'
-#'
-#' rast(unwrap("/Volumes/Extreme_SSD/dhw/GBR_CoralTemp_full.rds"))
-#' rast(unwrap("/Volumes/Extreme_SSD/dhw/GBR_CoralTemp_full.rds"))[[1]] |> plot()
-#'
-#' }
-#'
-#' \dontrun{
-#'
-#' process_CoralTemp(input = "/Volumes/Extreme_SSD/dhw/coraltempdhw",
-#'                   polygon = GBR_hull, crs = "EPSG:7844",
-#'                   combinedfilename = "/Volumes/Extreme_SSD/dhw/GBR_CoralTempDHW_full.rds",
-#'                   crop=TRUE, mask=TRUE, downsample=FALSE)
-#'
-#'
-#' rast(unwrap("/Volumes/Extreme_SSD/dhw/GBR_CoralTempDHW_full.rds"))[[1]] |> plot()
-#' rast(unwrap("/Volumes/Extreme_SSD/dhw/GBR_CoralTempDHW_full.rds"))
-#'
-#'}
-#'
+#' @name process_CoralTemp
+#' @title Process CoralTemp NetCDF files
+#' @description Multicore processing of CoralTemp .nc files with optional crop, mask, downsampling
+#' @param input Input folder with .nc files (flat structure, no per-year dirs)
+#' @param polygon sf polygon to crop/mask
+#' @param crs Output CRS (default EPSG:7844)
+#' @param crop TRUE/FALSE to crop
+#' @param mask TRUE/FALSE to mask
+#' @param downsample TRUE/FALSE to resample to coarser resolution
+#' @param res Resolution for downsampling (default 0.1)
+#' @param variable Ignored (first band used always)
+#' @param combinedfilename Output file path (.tif or .rds recommended)
+#' @param mc.cores Number of cores (default 1)
+#' @returns terra::SpatRaster
 #' @export
 
+process_CoralTemp <- function(input, polygon, crop = TRUE, mask = TRUE, downsample = FALSE,
+                              res = 0.1, variable = "sst", crs = "EPSG:7844",
+                              combinedfilename = NULL, mc.cores = 1) {
 
-process_CoralTemp <-  function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALSE, res=0.1, variable = "sst",  crs="EPSG:7844", combinedfilename = NULL){
+  process_file <- function(file, polygon, crop, mask, downsample, res) {
+    r <- try(terra::rast(file), silent = TRUE)
+    if (inherits(r, "try-error")) return(NULL)
 
-  rlist <- list.files(path = input,
-                      pattern = "\\.nc$",
-                      recursive = TRUE,
-                      full.names = TRUE)
-
-  processed_rasters <- list()
-
-  for (file in rlist) {
-
-    r <- terra::rast(file)
-    r <- r[[1]] # get first var
-    names(r) <- as.Date(terra::time(r))
-
-    polygon <- polygon |> sf::st_transform(terra::crs(r))
-
-    if (isTRUE(mask)){
-      r <- terra::mask(r, polygon)
-      cat("Masking raster - ")
-    }
-    if (isTRUE(crop)){
-      r <- terra::crop(r, polygon)
-      cat("Cropping raster - ")
-    }
-    if (isTRUE(downsample)){
+    r <- r[[1]]
+    names(r) <- base::as.Date(terra::time(r))
+    poly_t <- sf::st_transform(polygon, terra::crs(r))
+    if (isTRUE(mask)) r <- terra::mask(r, poly_t)
+    if (isTRUE(crop)) r <- terra::crop(r, poly_t)
+    if (isTRUE(downsample)) {
       target <- terra::rast(terra::ext(r), resolution = res, crs = terra::crs(r))
       r <- terra::resample(r, target, method = "bilinear")
-      cat("Resampling raster - ")
     }
 
-    processed_rasters <- c(processed_rasters, r)
-    cat("Processed:", file, "\n")
+    tempfile_name <- base::file.path(tempdir(), paste0("ct_", basename(file), ".tif"))
+    terra::writeRaster(r, filename = tempfile_name, overwrite = TRUE)
+    return(tempfile_name)
   }
 
-  cat("Combining rasters")
+  rlist <- base::list.files(path = input, pattern = "\\.nc$", recursive = TRUE, full.names = TRUE)
 
-  combined_raster <- do.call(c, processed_rasters) %>%
-    terra::project(., crs)
-  terra::writeRaster(combined_raster, combinedfilename)
+  base::cat("Processing in parallel using", mc.cores, "cores\n")
+  tempfiles <- parallel::mclapply(
+    rlist,
+    function(f) process_file(f, polygon, crop, mask, downsample, res),
+    mc.cores = mc.cores
+  )
 
-  cat("Combined raster saved to:", combinedfilename, "\n")
+  tempfiles <- base::Filter(Negate(is.null), tempfiles)
+  if (length(tempfiles) == 0) stop("No rasters processed successfully.")
 
+  base::cat("Reading and combining temporary rasters\n")
+  raster_list <- base::lapply(tempfiles, function(f) {
+    r <- try(terra::rast(f), silent = TRUE)
+    if (inherits(r, "try-error")) {
+      base::cat("Failed to read:", f, "\n")
+      return(NULL)
+    }
+    r
+  })
+  raster_list <- base::Filter(Negate(is.null), raster_list)
+  if (length(raster_list) == 0) stop("All temp rasters failed to load.")
 
+  combined_raster <- base::do.call(c, raster_list)
+  combined_raster <- terra::project(combined_raster, crs)
+
+  if (grepl("\\.rds$", combinedfilename)) {
+    base::saveRDS(terra::wrap(combined_raster), combinedfilename)
+  } else {
+    terra::writeRaster(combined_raster, filename = combinedfilename, overwrite = TRUE)
+  }
+
+  base::cat("Combined raster saved to:", combinedfilename, "\n")
+  base::unlink(tempfiles)
 }

@@ -13,30 +13,33 @@ process_CoralTemp(
   res = 0.1,
   variable = "sst",
   crs = "EPSG:7844",
-  combinedfilename = NULL
+  combinedfilename = NULL,
+  mc.cores = 1
 )
 }
 \arguments{
-\item{input}{input folder}
+\item{input}{Input folder with .nc files (flat structure, no per-year dirs)}
 
-\item{polygon}{polygon for crop/masl}
+\item{polygon}{sf polygon to crop/mask}
 
-\item{crop}{TRUE/FALSE}
+\item{crop}{TRUE/FALSE to crop}
 
-\item{mask}{TRUE/FALSE}
+\item{mask}{TRUE/FALSE to mask}
 
-\item{downsample}{TRUE/FALSE}
+\item{downsample}{TRUE/FALSE to resample to coarser resolution}
 
-\item{res}{resolution for downsamlpling}
+\item{res}{Resolution for downsampling (default 0.1)}
 
-\item{variable}{redundant?}
+\item{variable}{Ignored (first band used always)}
 
-\item{crs}{change the CRS if needed (EPSG:4283 as default)}
+\item{crs}{Output CRS (default EPSG:7844)}
 
-\item{combinedfilename}{output file path, should be .rds}
+\item{combinedfilename}{Output file path (.tif or .rds recommended)}
+
+\item{mc.cores}{Number of cores (default 1)}
 }
 \value{
-terra::rast
+terra::SpatRaster
 }
 \description{
 function to download the GBR shape files (14.1mb in size, shp file format) via eReefs
@@ -44,34 +47,6 @@ function to download the GBR shape files (14.1mb in size, shp file format) via e
 Notes:
 There are several versions of the GBR reefs shape file. This version is downloaded via the eAtlas
 Website and includes reefs from the Torres Strait. Default CRS is GDA94 (EPSG:4283)
-}
-\examples{
-\dontrun{
 
-GBR_hull <- download_gbr_spatial(return="hull", crs = "EPSG:7844")
-
-process_CoralTemp(input = "/Volumes/Extreme_SSD/dhw/coraltemp",
-                  polygon = GBR_hull, crs = "EPSG:7844",
-                  combinedfilename = "/Volumes/Extreme_SSD/dhw/GBR_CoralTemp_full.rds",
-                  crop=TRUE, mask=TRUE, downsample=FALSE)
-
-
-rast(unwrap("/Volumes/Extreme_SSD/dhw/GBR_CoralTemp_full.rds"))
-rast(unwrap("/Volumes/Extreme_SSD/dhw/GBR_CoralTemp_full.rds"))[[1]] |> plot()
-
-}
-
-\dontrun{
-
-process_CoralTemp(input = "/Volumes/Extreme_SSD/dhw/coraltempdhw",
-                  polygon = GBR_hull, crs = "EPSG:7844",
-                  combinedfilename = "/Volumes/Extreme_SSD/dhw/GBR_CoralTempDHW_full.rds",
-                  crop=TRUE, mask=TRUE, downsample=FALSE)
-
-
-rast(unwrap("/Volumes/Extreme_SSD/dhw/GBR_CoralTempDHW_full.rds"))[[1]] |> plot()
-rast(unwrap("/Volumes/Extreme_SSD/dhw/GBR_CoralTempDHW_full.rds"))
-
-}
-
+Multicore processing of CoralTemp .nc files with optional crop, mask, downsampling
 }

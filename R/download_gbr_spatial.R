@@ -66,9 +66,10 @@ download_gbr_spatial <- function(crs = "EPSG:4283", return="base") {
     label_ids <- gbr_files |>
       dplyr::filter(FEAT_NAME %in% c("Reef", "Terestrial Reef")) |>
       as.data.frame() |>
-      dplyr::select(LABEL_ID, GBR_NAME) |>
+      dplyr::select(LABEL_ID, GBR_NAME, SHAPE_AREA) |>
       dplyr::group_by(LABEL_ID) |>
-      dplyr::filter(row_number() == 1)
+      dplyr::slice_max(order_by = SHAPE_AREA, n = 1, with_ties = FALSE) |>
+      dplyr::select(-SHAPE_AREA)
 
     gbr_shape <- gbr_files |>
       dplyr::filter(FEAT_NAME %in% c("Reef", "Terestrial Reef")) |>
@@ -77,7 +78,11 @@ download_gbr_spatial <- function(crs = "EPSG:4283", return="base") {
       dplyr::summarize(geometry = sf::st_union(geometry)) |>
       dplyr::ungroup() |>
       dplyr::left_join(label_ids, by="LABEL_ID") %>%
-      dplyr::mutate(area = sf::st_area(.))
+      dplyr::mutate(area = sf::st_area(.))|>
+      mutate(
+        GBR_NAME = stringr::str_remove(GBR_NAME, " \\(Lagoon\\)") # fix LIRS
+      )
+
 
     return(gbr_shape)
 

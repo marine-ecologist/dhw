@@ -13,7 +13,8 @@ process_OISST(
   res = 0.1,
   variable = "sst",
   crs = "EPSG:7844",
-  combinedfilename = NULL
+  combinedfilename = NULL,
+  mc.cores = 1
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ process_OISST(
 \item{crs}{change the CRS if needed (EPSG:4283 as default)}
 
 \item{combinedfilename}{output file path, should be .rds}
+
+\item{mc.cores}{number of cores, defaults to 1}
 }
 \value{
 terra::rast

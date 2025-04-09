@@ -31,7 +31,7 @@ for metadata see here:
 
 [Complete Great Barrier Reef (GBR) Island and Reef Feature boundaries including Torres Strait Version 1b (NESP TWQ 3.13, AIMS, TSRA, GBRMPA)](https://researchdata.edu.au/complete-great-barrier-tsra-gbrmpa/675397)
 
-The function returns either "hull" (convex hull around reefs), "base" (basic with no changes), or "combined" (polygons merged to reef ID) 
+The function returns either "hull" (convex hull around reefs), "base" (basic with no changes), or "combined" (polygons merged to reef ID)
 
 ```{r, eval=TRUE}
 
@@ -83,28 +83,41 @@ Below are three helper functions that directly download CRW, OISST, and ERA5 dat
 
 
 download_CoralTemp(url = "https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw/5km/v3.1/nc/v1.0/daily/",
-                   start_date = "2024-01-01",
-                   end_date = "2024-12-31",
-                   dest_dir = "/Volumes/Extreme_SSD/dhw/CRW/2024/",
+                   start_date = "2025-01-01",
+                   end_date = "2025-03-31",
+                   dest_dir = "/Volumes/Extreme_SSD/dhw/CRW/CRW_SST/",
                    variable = "sst",
-                   mc.cores = 1)
-
+                   mc.cores = 10)
 
 download_CoralTemp(url = "https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw/5km/v3.1/nc/v1.0/daily/",
-                   start_date = "2024-01-01",
-                   end_date = "2024-12-31",
-                   dest_dir = "/Volumes/Extreme_SSD/dhw/CRW/2024/",
+                   start_date = "2025-01-01",
+                   end_date = "2025-03-31",
+                   dest_dir = "/Volumes/Extreme_SSD/dhw/CRW/CRW_SSTA/",
+                   variable = "ssta",
+                   quiet = FALSE,
+                   mc.cores = 10)
+
+download_CoralTemp(url = "https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw/5km/v3.1/nc/v1.0/daily/",
+                   start_date = "2025-01-01",
+                   end_date = "2025-03-31",
+                   dest_dir = "/Volumes/Extreme_SSD/dhw/CRW/CRW_HS/",
+                   variable = "hs",
+                   mc.cores = 10)
+
+download_CoralTemp(url = "https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw/5km/v3.1/nc/v1.0/daily/",
+                   start_date = "2025-01-01",
+                   end_date = "2025-03-31",
+                   dest_dir = "/Volumes/Extreme_SSD/dhw/CRW/CRW_DHW/",
                    variable = "dhw",
-                   mc.cores = 1)
+                   quiet = FALSE,
+                   mc.cores = 10)
 
 
 ```
 
-the full global dataset for four variables (sst, ssta, hs, dhw) is 520.78GB in individual ~10-11MB .nc files. 
-
+the full global dataset for four variables (sst, ssta, hs, dhw) is 520.78GB in individual \~10-11MB .nc files.
 
 `process_CoralTemp` does three functions: 1) crop-mask to a polygon shape (here the GBR hull), 2) combine `rast` files using `c()`, 3) output to an `.rds` file for saving. The function will be paralellised (later) as it is *slow*
-
 
 ```{r, eval=FALSE}
 
@@ -119,10 +132,9 @@ GBR_CoralTemp_full <- readRDS( "/Volumes/Extreme_SSD/dhw/summaries/GBR_CoralTemp
 process_CoralTemp(input = "/Volumes/Extreme_SSD/dhw/CRW/CRW_DHW",
                   polygon = GBR_hull, crs = "EPSG:7844",
                   combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_CoralTemp_DHW_full.rds",
-                  crop=TRUE, mask=TRUE, downsample=FALSE)
+                  crop=TRUE, mask=TRUE, downsample=FALSE, mc.cores = 10)
 
 ```
-
 
 Alternatively, `cdo` offers a much faster workflow using `cdo mergetime *.nc outfile` and cropped to the GBR extent using`remapbil,target_grid_file.nc input.nc regridded_output.nc` (note: CDO does not directly support cropping to irregular polygons, so remapbil sets to the extent (bbox).
 
@@ -130,36 +142,33 @@ Alternatively, `cdo` offers a much faster workflow using `cdo mergetime *.nc out
 
 `download_OISST()` pulls global data from the `ncei` https as follows:
 
-
 ```{r, eval=FALSE}
 
 download_OISST(url = "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/",
-               start_date = "2024-12-15",
-               end_date = "2024-12-15",
-               dest_dir = "/Volumes/Extreme_SSD/dhw/OISST/2024/",
-               mc.cores = 12)
+               start_date = "2025-03-18",
+               end_date = "2025-03-31",
+               dest_dir = "/Volumes/Extreme_SSD/dhw/OISST/2025/",
+               mc.cores = 10)
 
 
 ```
 
-the full global dataset is 26.39GB in individual ~10-11MB .nc files. 
+the full global dataset is 26.39GB in individual \~10-11MB .nc files.
 
-`process_OISST` does three functions: 1) crop-mask to a polygon shape (here the GBR hull), 2) combine `rast` files using `c()`, 3) output to an `.rds` file for saving. The function will be paralellised (later) as it is *slow*
+`process_OISST` does three functions: 1) crop-mask to a polygon shape (here the GBR hull), 2) combine `rast` files using `c()`, 3) output to an `.rds` file for saving. ~~The function will be paralellised (later) as it is *slow*~~ **Update (**2/4/25) to run with `parallel::mclapply()` if `mc.cores >1` - processing 15918 files across 10 cores now takes 88 seconds
 
 ```{r, eval=FALSE}
 
 process_OISST(input = "/Volumes/Extreme_SSD/dhw/OISST/",
               polygon = GBR_hull, crs = "EPSG:7844",
-              combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full.rds",
-              crop=TRUE, mask=TRUE, downsample=FALSE)
+              combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full_2025.tif",
+              crop=TRUE, mask=TRUE, downsample=FALSE, mc.cores=10)
 
-
-terra::rast("/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full.rds")
+terra::rast("/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full_2025.tif")
   
 ```
 
 Alternatively, `cdo` offers a much faster workflow using `cdo mergetime *.nc outfile` and cropped to the GBR extent using`remapbil,target_grid_file.nc input.nc regridded_output.nc` (note: CDO does not directly support cropping to irregular polygons, so remapbil sets to the extent (bbox).
-
 
 #### Extract ERA5
 
