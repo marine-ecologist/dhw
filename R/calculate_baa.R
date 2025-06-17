@@ -28,33 +28,34 @@
 #'
 calculate_baa <- function(hs, dhw) {
 
-    hotspotdhw <- terra::sds(hs, dhw)
+  hotspotdhw <- terra::sds(hs, dhw)
 
-    # Vectorized categorization function
-    categorize_baa <- function(hs, dhw) {
-      # Vectorized NA handling
-      result <- rep(NA, length(hs)) # Initialize output
+  # Vectorized categorization function
+  categorize_baa <- function(hs, dhw) {
+    # Treat NaN in dhw as 0
+    dhw[is.nan(dhw)] <- 0
 
-      result[hs <= 0] <- 0  # No Stress
-      result[hs > 0 & hs < 1 & dhw < 4] <- 1  # Bleaching Watch
-      result[hs >= 1 & dhw < 4] <- 2  # Bleaching Warning
-      result[hs >= 1 & dhw >= 4 & dhw < 8] <- 3  # Bleaching Alert Level 1
-      result[hs >= 1 & dhw >= 8 & dhw < 12] <- 4 # Bleaching Alert Level 2
-      result[hs >= 1 & dhw >= 12 & dhw < 16] <- 5 # Bleaching Alert Level 3
-      result[hs >= 1 & dhw >= 16 & dhw < 20] <- 6 # Bleaching Alert Level 4
-      result[hs >= 1 & dhw >= 20] <- 7  # Bleaching Alert Level 5
+    # Initialize output
+    result <- rep(NA, length(hs))
 
-      return(result)
-    }
+    result[hs <= 0] <- 0  # No Stress
+    result[hs > 0 & hs < 1 & dhw < 4] <- 1  # Bleaching Watch
+    result[hs >= 1 & dhw < 4] <- 2  # Bleaching Warning
+    result[hs >= 1 & dhw >= 4 & dhw < 8] <- 3  # Bleaching Alert Level 1
+    result[hs >= 1 & dhw >= 8 & dhw < 12] <- 4 # Bleaching Alert Level 2
+    result[hs >= 1 & dhw >= 12 & dhw < 16] <- 5 # Bleaching Alert Level 3
+    result[hs >= 1 & dhw >= 16 & dhw < 20] <- 6 # Bleaching Alert Level 4
+    result[hs >= 1 & dhw >= 20] <- 7  # Bleaching Alert Level 5
 
+    return(result)
+  }
 
-    baa <- terra::app(
-      hotspotdhw,
-      fun = function(x) categorize_baa(x[1], x[2])
-    )
+  baa <- terra::app(
+    hotspotdhw,
+    fun = function(x) categorize_baa(x[1], x[2])
+  )
 
-    terra::varnames(baa) <- "Bleaching Alert Area"
-    return(baa)
-
+  terra::varnames(baa) <- "Bleaching Alert Area"
+  return(baa)
 }
 

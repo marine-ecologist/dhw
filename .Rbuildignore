@@ -6,6 +6,14 @@
 ^logo$
 ^_pkgdown\.yml$
 ^docs$
+^code$
 ^pkgdown$
 ^doc$
 ^Meta$
+\.rdb$
+\.rdx$
+\.rds$
+\.RData$
+^\\.Rproj\\.user$
+^\\.Rhistory$
+^vignettes/extended_DHW\.Rmd$

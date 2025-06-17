@@ -6,8 +6,9 @@
 \usage{
 download_CoralTemp(
   url = "https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw/5km/v3.1/nc/v1.0/daily/",
-  start_date,
-  end_date,
+  start_date = NULL,
+  end_date = NULL,
+  dates = NULL,
   dest_dir,
   variable = "sst",
   mc.cores = 1,
@@ -20,6 +21,8 @@ download_CoralTemp(
 \item{start_date}{Start date in "YYYY-MM-DD" format.}
 
 \item{end_date}{End date in "YYYY-MM-DD" format.}
+
+\item{dates}{Vector of dates as an alternative to start_date and end_date for non sequential timeseries}
 
 \item{dest_dir}{Directory where NetCDF files should be saved.}
 

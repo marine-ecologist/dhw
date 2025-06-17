@@ -51,15 +51,14 @@ navbar:
     articles:
       text: Articles
       menu:
-      - text: 1. SST Metrics
-      - text: Calculating Degree Heating Weeks
+      - text: 1. Calculating Degree Heating Weeks
         href: articles/calculating_climatologies.html
-      - text: 2. Reprocible Code
-      - text: Validating DHW climatologies
+      - text: 2. Reproducible Code: validating DHW climatologies
         href: articles/validating_climatologies.html
-      - text: 3. Extracting and visualising data
-      - text: Downloading SST and spatial data
+      - text: 3. Downloading SST and spatial data
         href: articles/extracting_data.html
+      - text: 4. Visualising outputs from dhw
+        href: articles/visualising_data.html
 
 reference:
 - title: Climatologies and SST Metrics
@@ -83,8 +82,10 @@ reference:
   - process_OISST
 - title: Visualise data
   contents:
-  - plot_year
+  - plot_annual_dhw
+  - plot_max_dhw
   - plot_mm
+  - plot_sst_timeseries
   - plot2
 - title: Source data
   contents:
@@ -92,7 +93,10 @@ reference:
 - title: Assist functions
   contents:
   - summarise_raster
+  - st_polygon_from_bbox
   - extract_reefs
+  - as_climatology_df
+  - isComplete
   - check_missing_dates
 
 articles:

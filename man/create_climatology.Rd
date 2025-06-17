@@ -6,12 +6,14 @@
 \usage{
 create_climatology(
   sst_file,
+  anomaly = 1,
   window = 84,
   quiet = FALSE,
   return = FALSE,
   baa = FALSE,
   save_output = NULL,
-  climatology = NULL
+  climatology = NULL,
+  ...
 )
 }
 \arguments{

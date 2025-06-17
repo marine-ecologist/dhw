@@ -15,6 +15,7 @@
 #' @param variable redundant?
 #' @param combinedfilename output file path, should be .rds
 #' @param units Units for temperature: one of "celsius" or "kelvin". Default is "celsius".
+#' @param silent = TRUE
 #' @return A combined SpatRaster object in ERA5 format.
 #' @examples
 #' \dontrun{
@@ -23,7 +24,7 @@
 #' }
 #' @export
 
-process_ERA5 <- function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALSE, res=0.1, crs="EPSG:7844", combinedfilename = NULL, units = "celsius") {
+process_ERA5 <- function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALSE, res=0.1, crs="EPSG:7844", combinedfilename = NULL, silent=TRUE, units = "celsius") {
 
   # List all NetCDF files in the folder
   files <- list.files(input, pattern = "\\.nc$", full.names = TRUE)
@@ -69,16 +70,20 @@ process_ERA5 <- function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALSE,
     } else {
       ecmwfr_combined <- c(ecmwfr_combined, rastfile)
     }
+
+    if (isFALSE(silent)){
+      print(paste0("Processed ", file))
+      }
   }
 
 
   polygon <- polygon |> sf::st_transform(terra::crs(ecmwfr_combined))
 
   if (isTRUE(mask)){
-    ecmwfr_combined <- terra::mask(ecmwfr_combined, polygon)
+    ecmwfr_combined <- terra::mask(ecmwfr_combined, vect(polygon))
   }
   if (isTRUE(crop)){
-    ecmwfr_combined <- terra::crop(ecmwfr_combined, polygon)
+    ecmwfr_combined <- terra::crop(ecmwfr_combined, vect(polygon))
   }
   if (isTRUE(downsample)){
     target <- terra::rast(terra::ext(ecmwfr_combined), resolution = res, crs = terra::crs(ecmwfr_combined))

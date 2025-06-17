@@ -21,6 +21,7 @@
 #' @param mc.cores number of cores, defaults to 1
 #' @param combinedfilename output file path, should be .rds
 #' @param preliminary set to TRUE, strip _preliminary from filename
+#' @param ... pass arguments to internal function
 #' @returns terra::rast
 #' @examples
 #' \dontrun{
@@ -55,53 +56,8 @@
 
 process_OISST <- function(input, polygon, crop = TRUE, mask = TRUE, downsample = FALSE,
                           res = 0.1, variable = "sst", crs = "EPSG:7844", preliminary=TRUE,
-                          combinedfilename = NULL, mc.cores = 1) {
+                          combinedfilename = NULL, mc.cores = 1, ...) {
 
-  process_year <- function(year_dir, polygon, crop, mask, downsample, res, variable, preliminary) {
-    rlist <- base::list.files(path = year_dir, pattern = "\\.nc$", recursive = TRUE, full.names = TRUE)
-
-    if (!preliminary && any(grepl("_preliminary\\.nc$", rlist))) {
-      stop("Includes preliminary data. Remove and re-run or flag preliminary = TRUE.")
-    }
-
-    if (preliminary) {
-      rlist <- gsub("_preliminary\\.nc$", ".nc", rlist)
-    }
-
-
-
-    processed_rasters <- list()
-    for (file in rlist) {
-      base::cat("Reading file:", file, "\n")
-      r <- try(terra::rast(file), silent = TRUE)
-      if (inherits(r, "try-error")) next
-
-      varname <- paste0(variable, "_zlev=0")
-      if (!(varname %in% names(r))) {
-        base::cat("Skipping:", file, " — variable not found\n")
-        next
-      }
-
-      r <- r[[varname]]
-      base::names(r) <- base::as.Date(terra::time(r))
-      poly_t <- sf::st_transform(polygon, terra::crs(r))
-      if (isTRUE(mask)) r <- terra::mask(r, poly_t)
-      if (isTRUE(crop)) r <- terra::crop(r, poly_t)
-      if (isTRUE(downsample)) {
-        target <- terra::rast(terra::ext(r), resolution = res, crs = terra::crs(r))
-        r <- terra::resample(r, target, method = "bilinear")
-      }
-      processed_rasters <- base::c(processed_rasters, r)
-      base::cat("Processed:", file, "\n")
-    }
-
-    if (length(processed_rasters) == 0) return(NULL)
-
-    year_combined <- base::do.call(c, processed_rasters)
-    tempfile_name <- base::file.path(tempdir(), paste0("year_", basename(year_dir), ".tif"))
-    terra::writeRaster(year_combined, filename = tempfile_name, overwrite = TRUE)
-    return(tempfile_name)
-  }
 
   subdirs <- base::list.dirs(input, full.names = TRUE, recursive = FALSE)
   if (length(subdirs) == 0) subdirs <- input
@@ -109,7 +65,7 @@ process_OISST <- function(input, polygon, crop = TRUE, mask = TRUE, downsample =
   base::cat("Processing in parallel using", mc.cores, "cores\n")
   tempfiles <- parallel::mclapply(
     subdirs,
-    function(d) process_year(d, polygon, crop, mask, downsample, res, variable),
+    function(d) process_year(d, polygon, crop, mask, downsample, res, variable, preliminary),
     mc.cores = mc.cores
   )
 

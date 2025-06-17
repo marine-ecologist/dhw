@@ -7,6 +7,7 @@
 download_ERA5(
   start_year = 1981,
   end_year = 2022,
+  region = c(-9, 142, -25, 153),
   ecmwfr_key,
   timeout,
   dest_dir

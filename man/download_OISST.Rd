@@ -7,8 +7,9 @@
 download_OISST(
   url =
     "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/",
-  start_date,
-  end_date,
+  start_date = NULL,
+  end_date = NULL,
+  dates = NULL,
   dest_dir,
   mc.cores = 1
 )
@@ -19,6 +20,8 @@ download_OISST(
 \item{start_date}{end year}
 
 \item{end_date}{end year}
+
+\item{dates}{Vector of dates as an alternative to start_date and end_date for non sequential timeseries}
 
 \item{dest_dir}{save file location}
 
@@ -45,6 +48,11 @@ are referenced to buoys to compensate for platform differences and sensor biases
 download_OISST(url = "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/",
   start_date = "1990-01-01",
   end_date = "1990-01-02",
+  dest_dir = "/Volumes/Extreme_SSD/dhw/OISST/2024/",
+  mc.cores = 1)
+
+download_OISST(url = "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/",
+  dates = c("1990-01-01", "1990-01-02")
   dest_dir = "/Volumes/Extreme_SSD/dhw/OISST/2024/",
   mc.cores = 1)
 

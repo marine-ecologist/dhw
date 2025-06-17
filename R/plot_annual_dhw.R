@@ -5,11 +5,11 @@
 #' from a terra::rast() file input
 #'
 #' @param input rast() file
-#' @param range y lims for ggplot
+#' @param fixedyears range y lims for ggplot
 #' @returns ggplot of annual DHW scaled Nov-Aug
 #'
 #' @export
-plot_annual_DHW <- function(input, range = c(0, 12)) {
+plot_annual_DHW <- function(input, fixedyears=NULL) {
 
   input_df <- input |>
     terra::as.data.frame(xy = TRUE, wide = FALSE, time = TRUE) |>
@@ -19,6 +19,7 @@ plot_annual_DHW <- function(input, range = c(0, 12)) {
                   year = lubridate::year(time),
                   month = lubridate::month(time),
                   day = lubridate::yday(time))
+
 
   # calculate mean annual maxDHW
   data_dhw_mean_annual_max <- input_df |>
@@ -62,16 +63,22 @@ plot_annual_DHW <- function(input, range = c(0, 12)) {
     dplyr::mutate(eventyear = dplyr::if_else(month %in% c(11, 12), year + 1, year))
 
   # calculate top ten years
-  data_dhw_daily_mean_ten <- data_dhw_mean_annual_max |>
-    dplyr::slice_max(dhw, n = 10)
+  if (!is.null(fixedyears)) {
+    data_dhw_daily_mean_ten <- data_dhw_mean_annual_max |>
+      dplyr::filter(year %in% fixedyears)
+  } else {
+    data_dhw_daily_mean_ten <- data_dhw_mean_annual_max |>
+      dplyr::slice_max(dhw, n = 10)
+  }
 
   # extract main bleaching events
   data_dhw_daily_mean_mainevents <- data_dhw_daily_mean |>
     dplyr::mutate(eventyear = base::as.factor(eventyear)) |>
-    dplyr::filter(eventyear %in% c("1998", "2002", "2016", "2017", "2020", "2022", "2024")) |>
+    dplyr::filter(eventyear %in% unique(data_dhw_daily_mean_ten$year)) |>
     dplyr::group_by(eventyear) |>
     dplyr::mutate(maxdhw = base::max(dhw)) |>
-    dplyr::ungroup()
+    dplyr::ungroup() |>
+    arrange(eventyear)
 
   # characterise peaks of main bleaching events
   data_dhw_daily_mean_mainevents_peaks <- data_dhw_daily_mean_mainevents |>
@@ -79,6 +86,15 @@ plot_annual_DHW <- function(input, range = c(0, 12)) {
     dplyr::group_by(eventyear) |>
     dplyr::slice(1) |>
     dplyr::ungroup()
+
+  # set range to max DHW
+  range=c(0, (ceiling(max(input_df$dhw)) + 1))
+
+  # number of groups = unique years
+  # clamp Brewer base palette to [3, 11], then interpolate to n_grp
+  n_grp <- length(unique(data_dhw_daily_mean_ten$year))
+  base_cols <- RColorBrewer::brewer.pal(max(3, min(11, n_grp)), "RdYlBu")
+  pal_cols  <- grDevices::colorRampPalette(base_cols)(n_grp)
 
   # plot
   plot <- ggplot2::ggplot() +
@@ -89,7 +105,7 @@ plot_annual_DHW <- function(input, range = c(0, 12)) {
                        show.legend = FALSE,
                        ggplot2::aes(x = yday, y = dhw, group = eventyear, color = base::as.factor(eventyear)),
                        linewidth = 1.2) +
-    ggplot2::scale_color_manual(values = c("#3565a7", "#8faec1", "#bed5e6", "#e9a381", "#d57c5e", "#e23b4b", "#a32a31")) +
+    scale_color_manual(values = setNames(pal_cols, rev(sort(unique(as.factor(data_dhw_daily_mean_ten$year)))))) +
     ggplot2::geom_line(data = data_dhw_daily_mean_summary,
                        ggplot2::aes(x = yday, y = mean_dhw)) +
     ggplot2::geom_ribbon(data = data_dhw_daily_mean_summary,
@@ -110,7 +126,7 @@ plot_annual_DHW <- function(input, range = c(0, 12)) {
                        ggplot2::aes(x = -45, y = maxdhw + 0.2, label = year),
                        size = 3) +
     ggplot2::geom_text(data = data_dhw_daily_mean_mainevents_peaks,
-                       ggplot2::aes(x = 0, y = maxdhw + 0.2, label = base::paste0(base::round(maxdhw, 1), "°C")),
+                       ggplot2::aes(x = 0, y = maxdhw + 0.2, label = base::paste0(base::round(maxdhw, 1), " DHW")),
                        size = 3) +
     ggplot2::theme(panel.grid.minor = ggplot2::element_blank(),
                    panel.grid.major = ggplot2::element_blank()) +

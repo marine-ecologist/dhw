@@ -4,20 +4,24 @@
 \alias{calculate_dhw}
 \title{Calculate DHW}
 \usage{
-calculate_dhw(hotspots, window = 84)
+calculate_dhw(hs, anomaly = 1, window = 84)
 }
 \arguments{
-\item{hotspots}{hotspots}
+\item{hs}{SpatRaster of hotspots.}
 
-\item{window}{number of days to sum hotspots, default = 84 (12 weeks)}
+\item{anomaly}{numeric threshold for hotspots (default = 1). If <1, no thresholding is applied.}
+
+\item{window}{number of days to sum hotspots, default = 84 (12 weeks).}
 }
 \value{
-degree heating weeks (terra::rast format)
+SpatRaster of Degree Heating Weeks.
 }
 \description{
-Function to calculate hotspots
+Function to calculate Degree Heating Weeks (DHW).
 
-The function computes the Degree Heating Weeks (DHW) metric, which accumulates heat stress over a specified rolling window (defaulting to 84 days). The function operates by applying a rolling sum on the input hotspots raster data. For each pixel, if the daily hotspot values are greater than or equal to 1, they are summed over the rolling window and divided by 7 to calculate weekly averages using zoo::rollapply. The function returns a raster object with the calculated DHW values, which represent accumulated heat stress.
-
-See vignette for further details
+The function computes the Degree Heating Weeks (DHW) metric, which accumulates
+heat stress over a specified rolling window (defaulting to 84 days). If
+\code{anomaly >= 1}, only daily hotspot values greater than or equal to that
+threshold are included. If \code{anomaly < 1}, \emph{all} non-NA hotspot values are
+included without thresholding.
 }

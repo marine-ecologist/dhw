@@ -5,14 +5,14 @@
 \alias{plot_annual_DHW}
 \title{Plot mean monthly maximum for a given gridcell}
 \usage{
-plot_annual_DHW(input, range = c(0, 12))
+plot_annual_DHW(input, fixedyears = NULL)
 
 plot_mm(input, lon, lat)
 }
 \arguments{
 \item{input}{rast() file}
 
-\item{range}{y lims for ggplot}
+\item{fixedyears}{range y lims for ggplot}
 
 \item{lon}{vector of longitude}
 

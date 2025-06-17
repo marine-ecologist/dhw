@@ -4,7 +4,7 @@
 \alias{calculate_hotspots}
 \title{Calculate hotspots}
 \usage{
-calculate_hotspots(mmm, sst_file)
+calculate_hotspots(mmm, sst_file, anomaly = 1)
 }
 \arguments{
 \item{mmm}{maximum monthly mean}

@@ -10,9 +10,8 @@
 #' @returns daily hotpsots (terra::rast format)
 #'
 #'
-#'
 #' @export
-calculate_hotspots <- function(mmm, sst_file) {
+calculate_hotspots <- function(mmm, sst_file, anomaly=1) {
 
   set_hs_zero <- function(x) {
     x[x < 0] <- 0
@@ -20,7 +19,7 @@ calculate_hotspots <- function(mmm, sst_file) {
   }
 
   set_hs <- function(x) {
-    x[x < 1] <- 0
+    x[x < as.numeric(anomaly)] <- 0
     return(x)
   }
 

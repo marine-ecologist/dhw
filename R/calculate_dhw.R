@@ -1,18 +1,21 @@
 #' @name calculate_dhw
 #' @title Calculate DHW
 #' @description
-#' Function to calculate hotspots
+#' Function to calculate Degree Heating Weeks (DHW).
 #'
-#' The function computes the Degree Heating Weeks (DHW) metric, which accumulates heat stress over a specified rolling window (defaulting to 84 days). The function operates by applying a rolling sum on the input hotspots raster data. For each pixel, if the daily hotspot values are greater than or equal to 1, they are summed over the rolling window and divided by 7 to calculate weekly averages using zoo::rollapply. The function returns a raster object with the calculated DHW values, which represent accumulated heat stress.
+#' The function computes the Degree Heating Weeks (DHW) metric, which accumulates
+#' heat stress over a specified rolling window (defaulting to 84 days). If
+#' `anomaly >= 1`, only daily hotspot values greater than or equal to that
+#' threshold are included. If `anomaly < 1`, *all* non-NA hotspot values are
+#' included without thresholding.
 #'
-#' See vignette for further details
-#'
-#' @param hotspots hotspots
-#' @param window number of days to sum hotspots, default = 84 (12 weeks)
-#' @returns degree heating weeks (terra::rast format)
+#' @param hs SpatRaster of hotspots.
+#' @param anomaly numeric threshold for hotspots (default = 1). If <1, no thresholding is applied.
+#' @param window number of days to sum hotspots, default = 84 (12 weeks).
+#' @returns SpatRaster of Degree Heating Weeks.
 #'
 #' @export
-calculate_dhw <- function(hotspots, window=84) {
+calculate_dhw <- function(hs, anomaly = 1, window = 84) {
 
   # Internal function to compute rolling DHW
   calculate_dhw_internal <- function(hs_values) {
@@ -20,17 +23,20 @@ calculate_dhw <- function(hotspots, window=84) {
       return(rep(NA, length(hs_values)))
     }
 
-    # Use rollapply with handling for NA and empty vectors
     dhw_values <- zoo::rollapply(
       hs_values,
       width = window,
       FUN = function(x) {
-        # Handle NA values and empty sums explicitly
-        valid_values <- x[!is.na(x) & x >= 1]  # Filter valid values >= 1
-        if (length(valid_values) == 0) {       # No valid values
-          return(0)                            # Return 0 instead of NaN
+        if (anomaly < 1) {
+          valid_values <- x[!is.na(x)]                # take all non-NA values
         } else {
-          return(sum(valid_values) / 7)        # Compute sum/7
+          valid_values <- x[!is.na(x) & x >= anomaly] # only values >= threshold
+        }
+
+        if (length(valid_values) == 0) {
+          return(0)
+        } else {
+          return(sum(valid_values) / 7)
         }
       },
       fill = NA,
@@ -41,20 +47,18 @@ calculate_dhw <- function(hotspots, window=84) {
   }
 
   # Apply rolling DHW computation across raster layers
-  dhw <- terra::app(hotspots, fun = function(x) {
+  dhw <- terra::app(hs, fun = function(x) {
     result <- calculate_dhw_internal(x)
-    # Ensure output length matches input
     if (length(result) != length(x)) {
       result <- rep(NA, length(x))
     }
     return(result)
   })
 
-  # Set time and layer names
-  terra::time(dhw) <- as.Date(terra::time(hotspots), format = "%Y-%m-%d %H:%M:%S")
-  names(dhw) <- as.Date(terra::time(hotspots), format = "%Y-%m-%d %H:%M:%S")
+  # Preserve time dimension and names
+  terra::time(dhw) <- as.Date(terra::time(hs), format = "%Y-%m-%d %H:%M:%S")
+  names(dhw) <- as.Date(terra::time(hs), format = "%Y-%m-%d %H:%M:%S")
   terra::varnames(dhw) <- "Degree Heating Weeks"
 
   return(dhw)
-
 }

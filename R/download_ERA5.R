@@ -22,7 +22,7 @@
 #' @export
 
 
-download_ERA5 <- function(start_year = 1981, end_year = 2022, ecmwfr_key, timeout, dest_dir) {
+download_ERA5 <- function(start_year = 1981, end_year = 2022, region = c(-9, 142, -25, 153), ecmwfr_key, timeout, dest_dir) {
   ecmwfr::wf_set_key(key = ecmwfr_key)
 
 
@@ -37,7 +37,7 @@ download_ERA5 <- function(start_year = 1981, end_year = 2022, ecmwfr_key, timeou
       daily_statistic = "daily_mean",
       time_zone = "utc+10:00",
       frequency = "1_hourly",
-      area = c(-9, 142, -25, 153),
+      area = region,
       target = paste0("ecmwfr-", i, ".nc")
     )
 

@@ -26,9 +26,9 @@ library(terra)
 library(ggplot2)
 library(tidyverse)
 
-  
+lizard_crw <- system.file("extdata", "lizard_crw.tif", package = "dhw", mustWork = TRUE) |> rast()
 
-lizard_dhm <- calculate_dhm(lizard_crw) 
+lizard_dhm <- calculate_dhmi(lizard_crw) 
 
 
 lizard_dhm |> as.data.frame(wide=FALSE, time=TRUE) |> ggplot() + theme_bw() + 

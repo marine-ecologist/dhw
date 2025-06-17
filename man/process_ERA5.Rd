@@ -13,6 +13,7 @@ process_ERA5(
   res = 0.1,
   crs = "EPSG:7844",
   combinedfilename = NULL,
+  silent = TRUE,
   units = "celsius"
 )
 }
@@ -32,6 +33,8 @@ process_ERA5(
 \item{crs}{change the CRS if needed (EPSG:4283 as default)}
 
 \item{combinedfilename}{output file path, should be .rds}
+
+\item{silent}{= TRUE}
 
 \item{units}{Units for temperature: one of "celsius" or "kelvin". Default is "celsius".}
 

@@ -15,6 +15,7 @@
 #' @param url NOAA THREDDS server URL. Default is the CoralTemp data server.
 #' @param start_date Start date in "YYYY-MM-DD" format.
 #' @param end_date End date in "YYYY-MM-DD" format.
+#' @param dates Vector of dates as an alternative to start_date and end_date for non sequential timeseries
 #' @param dest_dir Directory where NetCDF files should be saved.
 #' @param variable Data type: 'sst', 'dhw', 'ssta', or 'hs'.
 #' @param mc.cores Number of cores for parallel downloads.
@@ -34,14 +35,14 @@
 
 download_CoralTemp <- function(
     url = "https://www.ncei.noaa.gov/thredds-ocean/fileServer/crw/5km/v3.1/nc/v1.0/daily/",
-    start_date,
-    end_date,
+    start_date = NULL,
+    end_date   = NULL,
+    dates      = NULL,
     dest_dir,
-    variable = "sst",
-    mc.cores = 1,
-    quiet=TRUE
+    variable   = "sst",
+    mc.cores   = 1,
+    quiet      = TRUE
 ) {
-
   # Validate the variable argument
   valid_vars <- c("sst", "dhw", "ssta", "hs")
   if (!(variable %in% valid_vars)) {
@@ -49,34 +50,63 @@ download_CoralTemp <- function(
   }
 
   # Ensure destination directory exists
-  if (!dir.exists(dest_dir)) {
-    dir.create(dest_dir, recursive = TRUE)
+  if (!dir.exists(dest_dir)) dir.create(dest_dir, recursive = TRUE)
+
+  # ---- Resolve dates: accept vector OR single "start:end" OR start_date/end_date ----
+  parse_date_any <- function(x) {
+    if (inherits(x, "Date")) return(x)
+    x <- as.character(x)
+    if (grepl("^\\d{8}$", x)) return(as.Date(x, "%Y%m%d"))
+    if (grepl("^\\d{4}-\\d{2}-\\d{2}$", x)) return(as.Date(x))
+    as.Date(NA)
   }
 
+  date_seq <- NULL
 
-  # Generate the list of dates in the required format
-  start_date <- as.Date(start_date)
-  end_date <- as.Date(end_date)
-  dates <- format(seq(start_date, end_date, by = "day"), "%Y%m%d")
+  if (!is.null(dates)) {
+    if (length(dates) == 1L && grepl(":", dates)) {
+      parts <- strsplit(dates, ":", fixed = TRUE)[[1]]
+      if (length(parts) != 2) stop("When using 'dates' as 'start:end', provide exactly one colon.")
+      d1 <- parse_date_any(trimws(parts[1]))
+      d2 <- parse_date_any(trimws(parts[2]))
+      if (any(is.na(c(d1, d2)))) stop("Unparseable date in 'dates' range. Use YYYYMMDD or YYYY-MM-DD.")
+      if (d2 < d1) stop("End date is earlier than start date in 'dates' range.")
+      date_seq <- seq(d1, d2, by = "day")
+    } else {
+      dv <- vapply(dates, parse_date_any, as.Date(NA))
+      if (any(is.na(dv))) stop("One or more entries in 'dates' are unparseable. Use YYYYMMDD or YYYY-MM-DD.")
+      date_seq <- sort(unique(as.Date(dv)))
+    }
+  } else {
+    if (is.null(start_date) || is.null(end_date)) {
+      stop("Provide either 'dates' or both 'start_date' and 'end_date'.")
+    }
+    d1 <- parse_date_any(start_date)
+    d2 <- parse_date_any(end_date)
+    if (any(is.na(c(d1, d2)))) stop("Unparseable 'start_date' or 'end_date'. Use YYYYMMDD or YYYY-MM-DD.")
+    if (d2 < d1) stop("'end_date' must be on/after 'start_date'.")
+    date_seq <- seq(d1, d2, by = "day")
+  }
 
-  # Parallel or sequential processing
+  dates <- format(date_seq, "%Y%m%d")
+
+  # ---- Download worker ----
+  dl_fun <- function(.date) {
+    download_nc_file_CRW(.date, base_url = url, dest_dir = dest_dir, var = variable)
+  }
+
+  # ---- Parallel or sequential processing ----
   if (mc.cores > 1) {
     if (isFALSE(quiet)) {
-      invisible(parallel::mclapply(dates, download_nc_file_CRW,
-                                   base_url = url, dest_dir = dest_dir, var = variable,
-                                   mc.cores = mc.cores))
+      invisible(parallel::mclapply(dates, dl_fun, mc.cores = mc.cores))
     } else {
-      parallel::mclapply(dates, download_nc_file_CRW,
-                         base_url = url, dest_dir = dest_dir, var = variable,
-                         mc.cores = mc.cores)
+      parallel::mclapply(dates, dl_fun, mc.cores = mc.cores)
     }
   } else {
     if (isFALSE(quiet)) {
-      invisible(lapply(dates, download_nc_file_CRW,
-                       base_url = url, dest_dir = dest_dir, var = variable))
+      invisible(lapply(dates, dl_fun))
     } else {
-      lapply(dates, download_nc_file_CRW,
-             base_url = url, dest_dir = dest_dir, var = variable)
+      lapply(dates, dl_fun)
     }
   }
 }
