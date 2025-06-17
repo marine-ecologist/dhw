@@ -21,6 +21,7 @@
 #' @param mc.cores number of cores, defaults to 1
 #' @param combinedfilename output file path, should be .rds
 #' @param preliminary set to TRUE, strip _preliminary from filename
+#' @param ... pass arguments to internal function
 #' @returns terra::rast
 #' @examples
 #' \dontrun{
@@ -55,7 +56,7 @@
 
 process_OISST <- function(input, polygon, crop = TRUE, mask = TRUE, downsample = FALSE,
                           res = 0.1, variable = "sst", crs = "EPSG:7844", preliminary=TRUE,
-                          combinedfilename = NULL, mc.cores = 1) {
+                          combinedfilename = NULL, mc.cores = 1, ...) {
 
   process_year <- function(year_dir, polygon, crop, mask, downsample, res, variable, preliminary) {
     rlist <- base::list.files(path = year_dir, pattern = "\\.nc$", recursive = TRUE, full.names = TRUE)

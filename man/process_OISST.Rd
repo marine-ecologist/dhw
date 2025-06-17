@@ -15,7 +15,8 @@ process_OISST(
   crs = "EPSG:7844",
   preliminary = TRUE,
   combinedfilename = NULL,
-  mc.cores = 1
+  mc.cores = 1,
+  ...
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ process_OISST(
 \item{combinedfilename}{output file path, should be .rds}
 
 \item{mc.cores}{number of cores, defaults to 1}
+
+\item{...}{pass arguments to internal function}
 }
 \value{
 terra::rast
