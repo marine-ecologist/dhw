@@ -71,7 +71,7 @@ process_ERA5 <- function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALSE,
     }
   }
 
-  ecmwfr_combined
+
   polygon <- polygon |> sf::st_transform(terra::crs(ecmwfr_combined))
 
   if (isTRUE(mask)){
@@ -85,7 +85,12 @@ process_ERA5 <- function(input, polygon, crop=TRUE, mask=TRUE, downsample=FALSE,
     ecmwfr_combined <- terra::resample(ecmwfr_combined, target, method = "bilinear")
   }
 
-  terra::writeRaster(combined_raster, combinedfilename)
+  if (grepl("\\.rds$", combinedfilename)) {
+    base::saveRDS(terra::wrap(ecmwfr_combined), combinedfilename)
+  } else {
+    terra::writeRaster(ecmwfr_combined, filename = combinedfilename, overwrite = TRUE)
+  }
+
 
   # Return the combined raster
   return(ecmwfr_combined)

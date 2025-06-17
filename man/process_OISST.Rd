@@ -13,6 +13,7 @@ process_OISST(
   res = 0.1,
   variable = "sst",
   crs = "EPSG:7844",
+  preliminary = TRUE,
   combinedfilename = NULL,
   mc.cores = 1
 )
@@ -33,6 +34,8 @@ process_OISST(
 \item{variable}{redundant?}
 
 \item{crs}{change the CRS if needed (EPSG:4283 as default)}
+
+\item{preliminary}{set to TRUE, strip _preliminary from filename}
 
 \item{combinedfilename}{output file path, should be .rds}
 

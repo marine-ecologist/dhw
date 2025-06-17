@@ -161,10 +161,10 @@ the full global dataset is 26.39GB in individual \~10-11MB .nc files.
 
 process_OISST(input = "/Volumes/Extreme_SSD/dhw/OISST/",
               polygon = GBR_hull, crs = "EPSG:7844",
-              combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full_2025.tif",
+              combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full_2025.rds",
               crop=TRUE, mask=TRUE, downsample=FALSE, mc.cores=10)
 
-terra::rast("/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full_2025.tif")
+terra::rast("/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full_2025.rds")
   
 ```
 
@@ -178,7 +178,7 @@ ERA5 doesn't have a direct `https` link as far as I'm aware. The `download_ERA5(
 
 download_ERA5(
     start_year = 1940,
-    end_year = 2024,
+    end_year = 2025,
     ecmwfr_key = "381246a1-68c9-4e99-aab2-44c36d6da73d",
     timeout=60,
     dest_dir = "/Volumes/Extreme_SSD/dhw/ERA5/"
@@ -186,11 +186,11 @@ download_ERA5(
   
   
 
+
 process_ERA5(input = "/Volumes/Extreme_SSD/dhw/ERA5/", units = "celsius",
               polygon = GBR_hull, crs = "EPSG:7844",
               combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_ERA5_full.rds",
               crop=TRUE, mask=TRUE, downsample=FALSE)
-
 terra::rast("/Volumes/Extreme_SSD/dhw/summaries/GBR_ERA5_full.rds")
 
 
