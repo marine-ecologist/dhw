@@ -159,10 +159,11 @@ NOAA_CRW <- rbind(NOAA_CRW_a, NOAA_CRW_b, NOAA_CRW_c)
 To compare this subset, run the individual components of the `create_climatology()` except replace the `calculated_mm` with the NOAA CRW `CoralTempDailyClimatology` amd visualise the data:
 
 
-```{r, fig.width=9, fig.height=9}
+```{r, fig.width=9, fig.height=9, cache=TRUE}
 
-
-system.file("extdata", "NOAA_CRW_data.rda", package = "dhw", mustWork = TRUE) |> load()
+lizard_crw_raster <- system.file("extdata", "lizard_crw.tif", package = "dhw", mustWork = TRUE) |> rast() |> project("EPSG:4283")
+lizard_crw_climatology_raster <- system.file("extdata", "lizard_crw_climatology.tif", package = "dhw", mustWork = TRUE) |> rast() |> project("EPSG:4326")
+load(system.file("extdata", "NOAA_CRW_data.rda", package = "dhw", mustWork = TRUE))
 
 
 calculated_mm <- calculate_monthly_mean(lizard_crw_raster)
@@ -176,17 +177,17 @@ calculated_baa <- calculate_baa(hs = calculated_hotspots, dhw = calculated_dhw)
 
 # convert to df
 calculated_sst_df <- lizard_crw_raster |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> mutate(time = as.Date(time)) |> 
-  rename(calculated_SST = values) |> filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+  rename(calculated_SST = values) |> dplyr::filter(time >= as.Date("2015-01-01")) |>  dplyr::filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
 calculated_dc_df <- calculated_dc |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |>  mutate(time = as.Date(time)) |> 
-  rename(calculated_DC = values) |> filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+  rename(calculated_DC = values) |> dplyr::filter(time >= as.Date("2015-01-01")) |>  dplyr::filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
 calculated_anomalies_df <- calculated_anomalies |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> mutate(time = as.Date(time)) |> 
-  rename(calculated_SSTA = values) |> filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+  rename(calculated_SSTA = values) |> dplyr::filter(time >= as.Date("2015-01-01")) |>  dplyr::filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
 calculated_hotspots_df <- calculated_hotspots |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> mutate(time = as.Date(time)) |> 
-  rename(calculated_HS = values) |> filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+  rename(calculated_HS = values) |> dplyr::filter(time >= as.Date("2015-01-01")) |>  dplyr::filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
 calculated_dhw_df <- calculated_dhw |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> mutate(time = as.Date(time)) |> 
-  rename(calculated_DHW = values) |>filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+  rename(calculated_DHW = values) |> dplyr::filter(time >= as.Date("2015-01-01")) |>  dplyr::filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
 calculated_baa_df <- calculated_baa |> as.data.frame(xy=TRUE, wide=FALSE, time=TRUE) |> mutate(time = as.Date(time)) |> 
-  rename(calculated_BAA = values) |> filter(time >= as.Date("2015-01-01")) |>  filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
+  rename(calculated_BAA = values) |> dplyr::filter(time >= as.Date("2015-01-01")) |>  dplyr::filter(time < as.Date("2024-05-15")) |> select(-x, -y, -layer)
 
 
 daily_climatology_plot <- ggplot() + theme_bw() + 
@@ -225,7 +226,7 @@ daily_baa_plot <- ggplot() + theme_bw() +
 Third, compare the calculated climatology values for `sst`, `ssta`, `hs`, `dhw` with the original downloaded NOAA `.nc` file to validate the method:
 
 
-```{r, fig.width=9, fig.height=6}
+```{r, fig.width=9, fig.height=6, cache=TRUE}
 
 NOAA_data <- NOAA_CRW_data |> dplyr::select(time, CRW_SST, CRW_SSTANOMALY, CRW_HOTSPOT, CRW_DHW, CRW_BAA) |> 
   mutate(time=as.Date(time)) |> 
@@ -244,7 +245,7 @@ calculated_data <-
   left_join(., calculated_hotspots_df, by = join_by(time)) %>% 
   left_join(., calculated_dhw_df, by = join_by(time)) %>% 
   left_join(., calculated_baa_df, by = join_by(time)) |> 
-  filter(time %in% NOAA_data$time) |> 
+  dplyr::filter(time %in% NOAA_data$time) |> 
   select(time, calculated_SST, calculated_SSTA, calculated_HS, calculated_DHW, calculated_BAA)
 
 combined_data <- left_join(calculated_data, NOAA_data, by = join_by(time))

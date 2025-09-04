@@ -2,7 +2,7 @@
 % Please edit documentation in R/process_CoralTemp.R
 \name{process_CoralTemp}
 \alias{process_CoralTemp}
-\title{Download GBR spatial data}
+\title{Process CoralTemp NetCDF files into a combined raster}
 \usage{
 process_CoralTemp(
   input,
@@ -14,37 +14,51 @@ process_CoralTemp(
   variable = "sst",
   crs = "EPSG:7844",
   combinedfilename = NULL,
-  mc.cores = 1
+  mc.cores = 1,
+  silent = TRUE
 )
 }
 \arguments{
-\item{input}{Input folder with .nc files (flat structure, no per-year dirs)}
+\item{input}{Character. Path to directory containing .nc files.}
 
-\item{polygon}{sf polygon to crop/mask}
+\item{polygon}{\code{sf} polygon object used for cropping/masking.}
 
-\item{crop}{TRUE/FALSE to crop}
+\item{crop}{Logical. If TRUE, crop rasters to polygon extent. Default TRUE.}
 
-\item{mask}{TRUE/FALSE to mask}
+\item{mask}{Logical. If TRUE, mask rasters by polygon. Default TRUE.}
 
-\item{downsample}{TRUE/FALSE to resample to coarser resolution}
+\item{downsample}{Logical. If TRUE, resample rasters to coarser resolution. Default FALSE.}
 
-\item{res}{Resolution for downsampling (default 0.1)}
+\item{res}{Numeric. Resolution for downsampling. Default 0.1.}
 
-\item{variable}{Ignored (first band used always)}
+\item{variable}{Character. Variable name (currently unused placeholder). Default "sst".}
 
-\item{crs}{Output CRS (default EPSG:7844)}
+\item{crs}{Character. Target CRS for final raster (e.g., "EPSG:7844").}
 
-\item{combinedfilename}{Output file path (.tif or .rds recommended)}
+\item{combinedfilename}{Character. Output file path (.tif or .rds).}
 
-\item{mc.cores}{Number of cores (default 1)}
+\item{mc.cores}{Integer or NULL. Number of cores for parallel processing.
+If NULL, sequential \code{base::lapply} is used. Default 1.}
+
+\item{silent}{Logical. If FALSE, print messages when files are processed.}
 }
 \value{
-terra::SpatRaster
+Writes a combined raster file to \code{combinedfilename}. Invisibly returns \code{TRUE}.
 }
 \description{
-function to download the GBR shape files (14.1mb in size, shp file format) via eReefs
-
-Notes:
-There are several versions of the GBR reefs shape file. This version is downloaded via the eAtlas
-Website and includes reefs from the Torres Strait. Default CRS is GDA94 (EPSG:4283)
+This function reads, crops, masks, and (optionally) downsamples CoralTemp
+NetCDF (.nc) files, then combines them into a single raster stack.
+Processing can be done sequentially with \code{lapply} or in parallel with
+\code{future.apply::future_lapply}.
+}
+\examples{
+\dontrun{
+process_CoralTemp(
+  input = "data/CoralTemp/",
+  polygon = sf::st_read("gbr_polygon.shp"),
+  combinedfilename = "outputs/CoralTemp_combined.tif",
+  mc.cores = 4,
+  silent = FALSE
+)
+}
 }

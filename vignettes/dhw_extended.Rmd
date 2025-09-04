@@ -78,12 +78,12 @@ ningaloo_shp <- st_read("https://public-services.slip.wa.gov.au/public/rest/serv
 # set sites
 ningaloo_pt <- st_point(c(113.926, -21.92)) |>
   st_sfc(crs = 4326) |>
-  st_transform(terra::crs(r)) |>
+  st_transform(terra::crs(ningaloo_OISST)) |>
   st_buffer(0.01)
 
 exmouth_pt <- st_point(c(114.179, -21.87)) |>
   st_sfc(crs = 4326) |>
-  st_transform(terra::crs(r)) |>
+  st_transform(terra::crs(ningaloo_OISST)) |>
   st_buffer(0.01)
 
 # extract OISST for each site
@@ -185,11 +185,11 @@ For each site plot annual timeseries for the top 10 warmest years (black line = 
 
 Increases in DHW intensity through time, but also increase in DHW window with more recent events (2011, 2013, 2025) starting early in the year (Jan) than earlier events (1988, 1998).
 
-```{r fig.height=5, fig.width=9, warning=false, message=false}
+```{r fig.height=5, fig.width=9, message=FALSE, warning=FALSE}
 
 # plot DHW timeseries
-a <- plot_annual_DHW(ningaloo_climatology$dhw) + ggtitle("Ningaloo")
-b <- plot_annual_DHW(exmouth_climatology$dhw) + ggtitle("Exmouth")
+a <- plot_annual_dhw(ningaloo_climatology$dhw) + ggtitle("Ningaloo")
+b <- plot_annual_dhw(exmouth_climatology$dhw) + ggtitle("Exmouth")
 
 a+b
 ```
@@ -267,7 +267,7 @@ Comparing the HotSpot profiles for Ningaloo, 2025 has a similar window duration 
 The HotSpot profiles for 2011 indicate sustained values ≥ 1 in Jan and Feb in 2011, with brief minor anomalies in April and May. In contrast, 2025 indicates prolonged HotSpots spanning two periods: Jan to mid-Feb, and late-Feb to mid-April. 
 
 
-```{r fig.height=4.5, fig.width=9}
+```{r fig.height=4.5, fig.width=9, message=FALSE, warning=FALSE}
 
 ref_hs_years <- c(2011, 2025)
 
@@ -380,7 +380,7 @@ climatology_df %>%
 
 The sustained HotSpot values values ≥ 1 °C when a rolling 12-week window results in substantial accumulation of DHW over the 2025 period, reaching a x2.4 higher DHW than 2011 (19.9 DHW vs 8.32 DHW), despite broadly similar intensity in maximum SST anomaly values between the two years:
 
-```{r fig.height=4.5, fig.width=9}
+```{r fig.height=4.5, fig.width=9, message=FALSE, warning=FALSE}
 
 
 climatology_df %>%
@@ -464,25 +464,25 @@ The standard DHW metric is calculated using the following equation with a window
 
 using `library(dhw)` we can adjust the window length used to calculate DHW from 12 weeks to a broader range (6, 8, 10, 12, 16, 20 weeks) as follows:
 
-```{r fig.height=5, fig.width=10}
+```{r fig.height=5, fig.width=10, message=FALSE, warning=FALSE}
 
 
 
-ningaloo_OISST_cell_dhw_6 <- calculate_dhw(ningaloo_OISST_cell_hotspots, window = 6*7) 
-ningaloo_OISST_cell_dhw_8 <- calculate_dhw(ningaloo_OISST_cell_hotspots, window=8*7) 
-ningaloo_OISST_cell_dhw_10 <- calculate_dhw(ningaloo_OISST_cell_hotspots, window=10*7) 
-ningaloo_OISST_cell_dhw_12 <- calculate_dhw(ningaloo_OISST_cell_hotspots, window=12*7) 
-ningaloo_OISST_cell_dhw_14 <- calculate_dhw(ningaloo_OISST_cell_hotspots, window=16*7) 
-ningaloo_OISST_cell_dhw_16 <- calculate_dhw(ningaloo_OISST_cell_hotspots, window=20*7) 
+ningaloo_climatology$sst_dhw_6 <- calculate_dhw(ningaloo_climatology$hotspots, window = 6*7) 
+ningaloo_climatology$sst_dhw_8 <- calculate_dhw(ningaloo_climatology$hotspots, window=8*7) 
+ningaloo_climatology$sst_dhw_10 <- calculate_dhw(ningaloo_climatology$hotspots, window=10*7) 
+ningaloo_climatology$sst_dhw_12 <- calculate_dhw(ningaloo_climatology$hotspots, window=12*7) 
+ningaloo_climatology$sst_dhw_14 <- calculate_dhw(ningaloo_climatology$hotspots, window=16*7) 
+ningaloo_climatology$sst_dhw_16 <- calculate_dhw(ningaloo_climatology$hotspots, window=20*7) 
 
 
 ningaloo_OISST_dhw_lag <- rbind(
-  data.frame(time=as.Date(time(ningaloo_OISST_cell_dhw_6)), dhw=as.vector(values(ningaloo_OISST_cell_dhw_6))) |> mutate(windowlength="6 weeks"),
-  data.frame(time=as.Date(time(ningaloo_OISST_cell_dhw_8)), dhw=as.vector(values(ningaloo_OISST_cell_dhw_8))) |> mutate(windowlength="8 weeks"),
-  data.frame(time=as.Date(time(ningaloo_OISST_cell_dhw_10)), dhw=as.vector(values(ningaloo_OISST_cell_dhw_10))) |> mutate(windowlength="10 weeks"),
-  data.frame(time=as.Date(time(ningaloo_OISST_cell_dhw_12)), dhw=as.vector(values(ningaloo_OISST_cell_dhw_12))) |> mutate(windowlength="12 weeks"),
-  data.frame(time=as.Date(time(ningaloo_OISST_cell_dhw_14)), dhw=as.vector(values(ningaloo_OISST_cell_dhw_14))) |> mutate(windowlength="14 weeks"),
-  data.frame(time=as.Date(time(ningaloo_OISST_cell_dhw_16)), dhw=as.vector(values(ningaloo_OISST_cell_dhw_16))) |> mutate(windowlength="16 weeks")) |> 
+  data.frame(time=as.Date(time(ningaloo_climatology$sst_dhw_6)), dhw=as.vector(values(ningaloo_climatology$sst_dhw_6))) |> mutate(windowlength="6 weeks"),
+  data.frame(time=as.Date(time(ningaloo_climatology$sst_dhw_8)), dhw=as.vector(values(ningaloo_climatology$sst_dhw_8))) |> mutate(windowlength="8 weeks"),
+  data.frame(time=as.Date(time(ningaloo_climatology$sst_dhw_10)), dhw=as.vector(values(ningaloo_climatology$sst_dhw_10))) |> mutate(windowlength="10 weeks"),
+  data.frame(time=as.Date(time(ningaloo_climatology$sst_dhw_12)), dhw=as.vector(values(ningaloo_climatology$sst_dhw_12))) |> mutate(windowlength="12 weeks"),
+  data.frame(time=as.Date(time(ningaloo_climatology$sst_dhw_14)), dhw=as.vector(values(ningaloo_climatology$sst_dhw_14))) |> mutate(windowlength="14 weeks"),
+  data.frame(time=as.Date(time(ningaloo_climatology$sst_dhw_16)), dhw=as.vector(values(ningaloo_climatology$sst_dhw_16))) |> mutate(windowlength="16 weeks")) |> 
   mutate(year = year(time), month = month(time), day=day(time)) |> 
   mutate(windowlength=factor(windowlength, levels=c("6 weeks", "8 weeks", "10 weeks", "12 weeks", "14 weeks", "16 weeks"))) 
 
@@ -521,30 +521,30 @@ similar to window length, using `library(dhw)` we can adjust the anomalies used 
 
 Reducing the anomaly threshold gives a more proportionate response between the two events than windowlength, with the exception of 2C anomalies that are absent in the 2011 event:
 
-```{r fig.height=5, fig.width=10}
+```{r fig.height=5, fig.width=10, message=FALSE, warning=FALSE}
 
-ningaloo_OISST_cell_anom_0.0 <- calculate_hotspots(ningaloo_OISST_cell_mmm, ningaloo_OISST_cell, anomaly=0) |> 
+ningaloo_climatology$sst_anom_0.0 <- calculate_hotspots(ningaloo_climatology$mmm, ningaloo_climatology$sst, anomaly=0) |> 
   calculate_dhw(anomaly=0)
-ningaloo_OISST_cell_anom_0.5 <- calculate_hotspots(ningaloo_OISST_cell_mmm, ningaloo_OISST_cell, anomaly=0.5) |> calculate_dhw(anomaly=0.5)
-ningaloo_OISST_cell_anom_1.0 <- calculate_hotspots(ningaloo_OISST_cell_mmm, ningaloo_OISST_cell, anomaly=1) |> 
+ningaloo_climatology$sst_anom_0.5 <- calculate_hotspots(ningaloo_climatology$mmm, ningaloo_climatology$sst, anomaly=0.5) |> calculate_dhw(anomaly=0.5)
+ningaloo_climatology$sst_anom_1.0 <- calculate_hotspots(ningaloo_climatology$mmm, ningaloo_climatology$sst, anomaly=1) |> 
   calculate_dhw(anomaly=1)
-ningaloo_OISST_cell_anom_1.5 <- calculate_hotspots(ningaloo_OISST_cell_mmm, ningaloo_OISST_cell, anomaly=1.5) |>
+ningaloo_climatology$sst_anom_1.5 <- calculate_hotspots(ningaloo_climatology$mmm, ningaloo_climatology$sst, anomaly=1.5) |>
   calculate_dhw(anomaly=1.5)
-ningaloo_OISST_cell_anom_2.0 <- calculate_hotspots(ningaloo_OISST_cell_mmm, ningaloo_OISST_cell, anomaly=2) |> 
+ningaloo_climatology$sst_anom_2.0 <- calculate_hotspots(ningaloo_climatology$mmm, ningaloo_climatology$sst, anomaly=2) |> 
   calculate_dhw(anomaly=2)
 
 
 ningaloo_OISST_dhw_anomalies <- rbind(
-  data.frame(time=as.Date(time(ningaloo_OISST_cell_anom_0.0)), 
-             dhw=as.vector(values(ningaloo_OISST_cell_anom_0.0))) |> mutate(anomaly="0 anom"),
-  data.frame(time=as.Date(time(ningaloo_OISST_cell_anom_0.5)), 
-             dhw=as.vector(values(ningaloo_OISST_cell_anom_0.5))) |> mutate(anomaly="0.5 anom"),
-  data.frame(time=as.Date(time(ningaloo_OISST_cell_anom_1.0)), 
-             dhw=as.vector(values(ningaloo_OISST_cell_anom_1.0))) |> mutate(anomaly="1.0 anom"),
-  data.frame(time=as.Date(time(ningaloo_OISST_cell_anom_1.5)), 
-             dhw=as.vector(values(ningaloo_OISST_cell_anom_1.5))) |> mutate(anomaly="1.5 anom"),
-  data.frame(time=as.Date(time(ningaloo_OISST_cell_anom_2.0)), 
-             dhw=as.vector(values(ningaloo_OISST_cell_anom_2.0))) |> mutate(anomaly="2.0 anom")) |> 
+  data.frame(time=as.Date(time(ningaloo_climatology$sst_anom_0.0)), 
+             dhw=as.vector(values(ningaloo_climatology$sst_anom_0.0))) |> mutate(anomaly="0 anom"),
+  data.frame(time=as.Date(time(ningaloo_climatology$sst_anom_0.5)), 
+             dhw=as.vector(values(ningaloo_climatology$sst_anom_0.5))) |> mutate(anomaly="0.5 anom"),
+  data.frame(time=as.Date(time(ningaloo_climatology$sst_anom_1.0)), 
+             dhw=as.vector(values(ningaloo_climatology$sst_anom_1.0))) |> mutate(anomaly="1.0 anom"),
+  data.frame(time=as.Date(time(ningaloo_climatology$sst_anom_1.5)), 
+             dhw=as.vector(values(ningaloo_climatology$sst_anom_1.5))) |> mutate(anomaly="1.5 anom"),
+  data.frame(time=as.Date(time(ningaloo_climatology$sst_anom_2.0)), 
+             dhw=as.vector(values(ningaloo_climatology$sst_anom_2.0))) |> mutate(anomaly="2.0 anom")) |> 
   mutate(year = year(time), month = month(time), day=day(time)) |> 
   mutate(anomaly=factor(anomaly, levels=c("0 anom", "0.5 anom", "1.0 anom", "1.5 anom", "2.0 anom"))) 
 

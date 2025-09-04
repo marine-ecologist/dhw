@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 
 The main function ``` create_climatology(``) ``` takes an input `terra::rast()` SST file. Included is an example a subset of the NOAA CoralTemp for Lizard Island (145.4, -14.7):
 
-```{r}
+```{r, message=TRUE, warning=FALSE, cache=TRUE}
   library(dhw)
   library(terra)
   library(ggplot2)
@@ -32,7 +32,7 @@ The main function ``` create_climatology(``) ``` takes an input `terra::rast()` 
 
 To create climatologies, use `create_climatology`:
 
-```{r}
+```{r, message=TRUE, warning=FALSE, cache=TRUE}
   
   lizard_climatology <- create_climatology(lizard_crw)
   
@@ -41,7 +41,7 @@ To create climatologies, use `create_climatology`:
 
 which outputs a list of seven rasters, including sst (the original input data), monthly maximum, mean monthly maximum, daily climatology, anomalies, hotspots, and degree heating weeks:
 
-```{r}
+```{r, message=TRUE, warning=FALSE, cache=TRUE}
 
 str(lizard_climatology)
 
@@ -66,7 +66,7 @@ the `calculate_monthly_mean()` function takes an input raster SST file (for exam
 
 This function calculates the **monthly mean climatology (MM)** for a given sea surface temperature (SST) dataset over a specified baseline period (1985–2012). It first extracts the time dimension from the input sst_file and filters the data to include only the years 1985–2012. For each month (January to December), it subsets the SST data corresponding to that month and applies a linear regression to estimate the SST value adjusted to the year 1988.2857 (the average of the baseline years). This is done by predicting the SST value for 1988.2857 using the regression model. The function outputs a terra::rast object containing 12 layers, one for each month’s climatological mean SST, with appropriate names and metadata assigned to the layers.
 
-```{r}
+```{r, message=TRUE, warning=FALSE, cache=TRUE}
 
 lizard_crw_mm <- calculate_monthly_mean(sst_file = lizard_crw)
 
@@ -80,7 +80,7 @@ the `calculate_maximum_monthly_mean()` function takes the output from the monthl
 
 > The Maximum Monthly Mean (MMM) climatology is the maximum of the 12 MM values for each satellite pixel.
 
-```{r}
+```{r, message=TRUE, warning=FALSE, cache=TRUE}
 
 lizard_crw_mmm <- calculate_maximum_monthly_mean(mm = lizard_crw_mm)
 
@@ -96,7 +96,7 @@ the `calculate_daily_climatology()` function takes an input raster SST file in `
 
 The function generates a **daily SST climatology** from a provided monthly mean climatology (mm) and an SST dataset (sst_file). It first ensures the time dimension of sst_file is in Date format and extracts the start and end dates. Monthly time values are generated, and the monthly climatology is repeated across the time range and assigned to the 15th day of each month. Using zoo::na.approx, the function interpolates the monthly climatology to a daily resolution, aligning it with the exact daily dates of sst_file. The result is a terra::rast object with daily climatology values, named and time-aligned to the input SST dataset.
 
-```{r}
+```{r, message=TRUE, warning=FALSE, cache=TRUE}
 
 lizard_crw_climatology <- calculate_daily_climatology(sst_file = lizard_crw, mm = lizard_crw_mm)
 
@@ -120,7 +120,7 @@ the `calculate_anomalies()` function takes the sst file and the daily climatolog
 
 The function subtracts the daily climatologies from the input sst_file to give the daily anomalies.
 
-```{r}
+```{r, message=TRUE, warning=FALSE, cache=TRUE}
 
 lizard_crw_anomalies <- calculate_anomalies(sst_file = lizard_crw, climatology = lizard_crw_climatology)
 
@@ -142,7 +142,7 @@ the `calculate_hotspots()` function takes the mean monthly maximum function and 
 
 the function computes **Coral Bleaching HotSpots (HS)** based on the difference between sea surface temperature (SST) data (sst_file) and the **Maximum Monthly Mean (MMM)** climatology (mmm). It begins by calculating the anomaly (anomaly_mmm), which is the difference between the SST and MMM. The anomalies are transformed into two hotspot rasters: hotspots_unset, where values below 0 are set to 0, and hotspots, where values below 1 are set to 0, reflecting the threshold for meaningful heat stress. The function ensures that time metadata and proper variable names are assigned to the resulting rasters, and the final raster (hotspots) is returned, containing daily hotspot values for the SST data aligned with the MMM climatology.
 
-```{r}
+```{r, message=TRUE, warning=FALSE, cache=TRUE}
 
 lizard_crw_hotspots <- calculate_hotspots(mmm = lizard_crw_mmm, sst_file = lizard_crw)
 
@@ -164,9 +164,9 @@ the `calculate_dhw()` function takes the hotspots and a specified window (by def
 
 The function computes the Degree Heating Weeks (DHW) metric, which accumulates heat stress over a specified rolling window (defaulting to 84 days). The function operates by applying a rolling sum on the input hotspots raster data. For each pixel, if the daily hotspot values are greater than or equal to 1, they are summed over the rolling window and divided by 7 to calculate weekly averages using zoo::rollapply. The function returns a raster object with the calculated DHW values, which represent accumulated heat stress.
 
-```{r}
+```{r, message=TRUE, warning=FALSE, cache=TRUE}
 
-lizard_crw_dhw <- calculate_dhw(hotspots = lizard_crw_hotspots)
+lizard_crw_dhw <- calculate_dhw(lizard_crw_hotspots)
 
 lizard_crw_dhw
 

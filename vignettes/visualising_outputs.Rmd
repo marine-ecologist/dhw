@@ -4,7 +4,7 @@ author: "George Roff"
 date: "2025-09-03"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Validating DHW climatologies}
+  %\VignetteIndexEntry{Visualising DHW outputs}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -18,7 +18,18 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Example outputs from Ningaloo Reef data:
 
-```{r fig.height=4, fig.width=9, message=FALSE, warning=FALSE}
+```{r, include=FALSE, eval=TRUE}
+library(terra)
+library(tidyverse)
+library(dhw)
+library(sf)
+library(tmap)
+library(rnaturalearth)
+library(patchwork)
+
+```
+
+```{r, fig.height=4, fig.width=9, message=FALSE, warning=FALSE, cache=TRUE}
 library(terra)
 library(tidyverse)
 library(dhw)
@@ -29,13 +40,13 @@ library(patchwork)
 
 
 # read raster from package, calculate climatology
-ningaloo_OISST <- system.file("extdata", "ningaloo_OISST.tif", package = "dhw", mustWork = TRUE) |> rast()
+ningaloo_OISST <- rast(system.file("extdata", "ningaloo_OISST.tif", package = "dhw", mustWork = TRUE))
 all_climatology <- create_climatology(ningaloo_OISST, baa = TRUE, quiet=TRUE)
 
 # Example site at Ningaloo for timeseries:
 ningaloo_pt <- st_point(c(113.926, -21.92)) |>
   st_sfc(crs = 4326) |>
-  st_transform(terra::crs(r)) |>
+  st_transform(terra::crs(ningaloo_OISST)) |>
   st_buffer(0.01)
 
 ningaloo_slope_OISST <- crop(ningaloo_OISST, vect(ningaloo_pt))
@@ -49,45 +60,18 @@ ningaloo_climatology <- create_climatology(ningaloo_slope_OISST, baa = TRUE, qui
 
 plot a `NOAA`esque annual time-series of sst with Mean Monthly Maximum and Bleaching Alert Levels from the main climatology input:
 
-```{r fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
+```{r, fig.height=6, fig.width=8, message=FALSE, warning=FALSE, cache=TRUE}
 
 plot_sst_timeseries(ningaloo_climatology, 2025)
 
 ```
-note - dhw uses the revised bleaching alert levels 1 to 5:
 
-```{r}
-
-# old alert levels
-dplyr::case_when(
-  is.na(hotspots) | is.na(dhw)            ~ NA_character_,
-  hotspots <= 0                           ~ "No Stress",
-  hotspots > 0 & hotspots < 1             ~ "Watch",
-  hotspots >= 1 & dhw < 4                 ~ "Warning",
-  dhw >= 4 & dhw < 8                      ~ "Alert Level 1",
-  dhw >= 8                                ~ "Alert Level 2"
-)
-
-# new revised alert levels
-dplyr::case_when(
-  is.na(hotspots) | is.na(dhw)                 ~ NA_character_,
-  hotspots <= 0                                 ~ "No Stress",
-  hotspots > 0  & hotspots < 1  & dhw < 4       ~ "Watch",
-  hotspots >= 1 & dhw < 4                       ~ "Warning",
-  hotspots >= 1 & dhw >= 4  & dhw < 8           ~ "Alert Level 1",
-  hotspots >= 1 & dhw >= 8  & dhw < 12          ~ "Alert Level 2",
-  hotspots >= 1 & dhw >= 12 & dhw < 16          ~ "Alert Level 3",
-  hotspots >= 1 & dhw >= 16 & dhw < 20          ~ "Alert Level 4",
-  hotspots >= 1 & dhw >= 20                     ~ "Alert Level 5"
-)
-
-```
 
 ### Plot maximum annual DHW:
 
 Plot maximum annual DHW from `spatraster` input:
 
-```{r fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
+```{r, fig.height=6, fig.width=8, message=FALSE, warning=FALSE, cache=TRUE}
 
 plot_max_dhw(ningaloo_climatology$dhw)
 
@@ -99,19 +83,9 @@ plot_max_dhw(ningaloo_climatology$dhw)
 
 Plot annual DHW timeseries from `spatraster` input:
 
-```{r fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
+```{r, fig.height=6, fig.width=8, message=FALSE, warning=FALSE, cache=TRUE}
 
-plot_annual_DHW(ningaloo_climatology$dhw)
-
-```
-
-### XY Plot 
-
-Simple base `R` xy plot for two timeseries (mostly for diagnostics):
-
-```{r fig.height=5, fig.width=5, message=FALSE, warning=FALSE}
-
-plot2(ningaloo_climatology$sst, ningaloo_climatology$dhw)
+plot_annual_dhw(ningaloo_climatology$dhw)
 
 ```
 
@@ -119,7 +93,7 @@ plot2(ningaloo_climatology$sst, ningaloo_climatology$dhw)
 
 Plot mean monthly SST for a lon/lat from an input sst `spatraster`:
 
-```{r fig.height=7, fig.width=9, message=FALSE, warning=FALSE}
+```{r, fig.height=7, fig.width=9, message=FALSE, warning=FALSE, cache=TRUE}
 
 plot_mm(ningaloo_climatology$sst, lon=113.8, lat=-21.9)
 
@@ -130,10 +104,10 @@ plot_mm(ningaloo_climatology$sst, lon=113.8, lat=-21.9)
 
 Spatial maps of DHW for select dates:
 
-```{r fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
+```{r, fig.height=6, fig.width=10, message=FALSE, warning=FALSE, cache=TRUE}
 
 # extract dates from climatology
-dates <- c("2024-03-22", "2025-04-04")
+dates <- c("2011-03-31", "2024-03-22", "2025-04-04")
 idx <- match(dates, names(all_climatology$dhw))
 ningaloo_subset <- all_climatology$dhw[[idx[!is.na(idx)]]]
 

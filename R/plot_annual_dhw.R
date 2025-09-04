@@ -1,15 +1,17 @@
-#' @name plot_mm
+#' @name plot_annual_dhw
 #' @title Plot mean monthly maximum for a given gridcell
 #' @description
 #' Plot mean monthly maximum for a given gridcell
-#' from a terra::rast() file input
+#' from a terra::rast file input
 #'
-#' @param input rast() file
+#' @param input rast file
 #' @param fixedyears range y lims for ggplot
 #' @returns ggplot of annual DHW scaled Nov-Aug
 #'
 #' @export
-plot_annual_DHW <- function(input, fixedyears=NULL) {
+#'
+#'
+plot_annual_dhw <- function(input, fixedyears=NULL) {
 
   input_df <- input |>
     terra::as.data.frame(xy = TRUE, wide = FALSE, time = TRUE) |>

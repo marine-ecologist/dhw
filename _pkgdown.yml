@@ -19,46 +19,52 @@ development:
 navbar:
   structure:
     left:
-    - intro
-    - reference
-    - articles
-    - tutorials
-    - news
+      - intro
+      - reference
+      - articles
+      - tutorials
+      - news
     right:
-    - search
-    - github
-    - lightswitch
+      - search
+      - github
+      - lightswitch
+
   components:
     reference:
       text: Reference
       href: reference/index.html
+
     search:
       search: []
+
     lightswitch:
       icon: fa-sun
       aria-label: Light switch
       id: lightswitch
       menu:
-      - text: Light
-        theme: light
-        icon: fa-sun
-      - text: Dark
-        theme: dark
-        icon: fa-moon
-      - text: Auto
-        theme: auto
-        icon: fa-adjust
+        - text: Light
+          theme: light
+          icon: fa-sun
+        - text: Dark
+          theme: dark
+          icon: fa-moon
+        - text: Auto
+          theme: auto
+          icon: fa-adjust
+
     articles:
       text: Articles
       menu:
-      - text: 1. Calculating Degree Heating Weeks
-        href: articles/calculating_climatologies.html
-      - text: 2. Reproducible Code: validating DHW climatologies
-        href: articles/validating_climatologies.html
-      - text: 3. Downloading SST and spatial data
-        href: articles/extracting_data.html
-      - text: 4. Visualising outputs from dhw
-        href: articles/visualising_data.html
+        - text: "1. Calculating Degree Heating Weeks"
+          href: articles/calculating_climatologies.html
+        - text: "2. Reproducible Code & validating DHW climatologies"
+          href: articles/validating_climatologies.html
+        - text: "3. Downloading SST and spatial data"
+          href: articles/extracting_data.html
+        - text: "4. Visualising outputs from dhw"
+          href: articles/visualising_outputs.html
+        - text: "5. Extending the DHW metric"
+          href: articles/dhw_extended.html
 
 reference:
 - title: Climatologies and SST Metrics
@@ -71,6 +77,7 @@ reference:
   - calculate_hotspots
   - calculate_dhw
   - calculate_baa
+  - calculate_dhmi
 - title: Download data
   contents:
   - download_CoralTemp
@@ -98,6 +105,8 @@ reference:
   - as_climatology_df
   - isComplete
   - check_missing_dates
+  - process_year
+  - calculate_metrics
 
 articles:
 - title: All vignettes
@@ -106,3 +115,5 @@ articles:
   - calculating_climatologies
   - extracting_data
   - validating_climatologies
+  - visualising_outputs
+  - dhw_extended
