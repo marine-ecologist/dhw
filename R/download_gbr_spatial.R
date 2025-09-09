@@ -72,7 +72,7 @@ download_gbr_spatial <- function(crs = "EPSG:4283", return="base") {
       dplyr::select(-SHAPE_AREA)
 
     gbr_shape <- gbr_files |>
-      dplyr::filter(FEAT_NAME %in% c("Reef", "Terestrial Reef")) |>
+    #dplyr::filter(FEAT_NAME %in% c("Reef", "Terestrial Reef")) |>
       sf::st_make_valid() |>
       dplyr::group_by(LABEL_ID) |>
       dplyr::summarize(geometry = sf::st_union(geometry)) |>
