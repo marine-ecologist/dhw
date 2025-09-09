@@ -64,7 +64,7 @@ download_gbr_spatial <- function(crs = "EPSG:4283", return="base") {
     gbr_files$LABEL_ID <- stringr::str_extract(gbr_files$LABEL_ID_FULL, "^\\d{2}-\\d{3}")
 
     label_ids <- gbr_files |>
-      dplyr::filter(FEAT_NAME %in% c("Reef", "Terestrial Reef")) |>
+      dplyr::filter(FEAT_NAME %in% c("Reef", "Terrestrial Reef", "Island", "Rock", "Bank")) |> # expanded to include island/rock/bank to match GBRMPA aerial surveys
       as.data.frame() |>
       dplyr::select(LABEL_ID, GBR_NAME, SHAPE_AREA) |>
       dplyr::group_by(LABEL_ID) |>
