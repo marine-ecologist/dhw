@@ -565,7 +565,7 @@ ningaloo_OISST_dhw_anomalies  %>%
 
 ggplot() + theme_bw() + ggtitle("2011 event") +
   facet_wrap(~season_anchor, ncol=2) +
-  geom_line(aes(reference_date, dhw, group=anomaly, color=anomaly), show.legend=FALSE) + 
+  geom_line(aes(reference_date, dhw, group=anomaly, color=anomaly), show.legend=TRUE) + 
   scale_color_manual(values = c("0 anom" = "#2166AC", "0.5 anom" =  "#67A9CF", "1.0 anom" = "#000000", "1.5 anom" = "#EF8A62", "2.0 anom" = "#B2182B")) +
 #  scale_x_date(date_breaks = "1 month", date_labels = "%b") #+
 #  scale_y_continuous(limits=c(0,26), breaks=seq(0,26,4)) 
