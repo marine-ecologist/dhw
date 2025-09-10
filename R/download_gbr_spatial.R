@@ -29,7 +29,7 @@ download_gbr_spatial <- function(return="base", crs = 4283) {
 
   # Download the ZIP file
   message("Downloading spatial data...")
-  httr::GET(url, httr::write_disk(temp_zip, overwrite = TRUE))
+  httr::GET(url, httr::write_disk(temp_zip, overwrite = T))
 
   # Create output directory for unzipped files
   if (!dir.exists(temp_dir)) {
