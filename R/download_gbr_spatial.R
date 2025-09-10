@@ -19,9 +19,7 @@
 #'}
 #' @export
 
-
-
-download_gbr_spatial <- function(crs = "EPSG:4283", return="base") {
+download_gbr_spatial <- function(return="base", crs = "4283") {
   # URL for the spatial data
   url <- "https://nextcloud.eatlas.org.au/s/xQ8neGxxCbgWGSd/download/TS_AIMS_NESP_Torres_Strait_Features_V1b_with_GBR_Features.zip"
 
@@ -59,7 +57,7 @@ download_gbr_spatial <- function(crs = "EPSG:4283", return="base") {
 
   if (return=="combined"){
 
-    gbr_files <- gbr_shape |> sf::st_transform(4283)
+    gbr_files <- gbr_shape |> sf::st_transform(crs)
     gbr_files$LABEL_ID_FULL <- gbr_files$LABEL_ID
     gbr_files$LABEL_ID <- stringr::str_extract(gbr_files$LABEL_ID_FULL, "^\\d{2}-\\d{3}")
 
@@ -97,6 +95,14 @@ download_gbr_spatial <- function(crs = "EPSG:4283", return="base") {
       sf::st_transform(crs)
 
     return(gbr_hull)
+
+  } else if (return=="outline"){
+
+    gbr_outline <- sf::st_read(shapefile_path, quiet = TRUE) |>
+      dplyr::slice_max(SHAPE_AREA, n=1) |>
+      sf::st_transform(crs)
+
+    return(gbr_outline)
 
   } else if (return=="base"){
 
