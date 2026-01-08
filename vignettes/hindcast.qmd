@@ -1,0 +1,453 @@
+---
+title: "Monthly-anomaly Quantile Mapping (QM) hindcast reconstructions"
+format: 
+  html:
+    toc: false
+    code-fold: true
+    self-contained: true
+editor: visual
+---
+
+```{r, message=FALSE, warning=FALSE, cache=TRUE, class.source = 'fold-hide'}
+#| fig-height: 5
+#| fig-width: 10
+
+# Libraries
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(terra)
+library(tibble)
+library(ggplot2)
+library(dhw)
+
+conflicted::conflicts_prefer(terra::intersect)
+```
+
+The `hindcast_qm()` function performs anomaly-based quantile mapping to reconstruct a hindcast SST time series by bias-correcting a long model dataset (e.g. ERA5) to a shorter observed reference dataset (e.g. OISST), enabling extension of historical SST records. The method removes and corrects monthly anomalies rather than absolute values, ensuring that the reconstructed hindcast exactly matches the observed OISST seasonal cycle, reproduces the observed within-month anomaly distributions, retains ERA5’s sub-seasonal temporal variability, produces a continuous time series across the hindcast–observation boundary, and avoids artificial amplification of the seasonal temperature range.
+
+For each grid cell (e.g. `input1 = OISST` and `input2 = ERA5`)
+
+**1. Define a calibration window**
+
+Overlap period where both input1 and input2 exist
+
+**2. Compute monthly climatologies over the overlap**
+
+For month $m \in \{1,\dots,12\}$:
+
+$$
+\mu^{\mathrm{input1}}_{m} = \mathbb{E}\!\left[\mathrm{input1}(t)\mid \mathrm{month}(t)=m\right]
+$$
+
+$$
+\mu^{\mathrm{input2}}_{m} = \mathbb{E}\!\left[\mathrm{input2}(t)\mid \mathrm{month}(t)=m\right]
+$$
+
+**3. Convert both datasets to monthly anomalies**
+
+$$
+A^{\mathrm{input1}}(t) = \mathrm{input1}(t) - \mu^{\mathrm{input1}}_{m(t)}
+$$
+
+$$
+A^{\mathrm{input2}}(t) = \mathrm{input2}(t) - \mu^{\mathrm{input2}}_{m(t)}
+$$
+
+(i.e. explicitly preserve the seasonal cycle)
+
+**4. Build month-specific empirical CDFs of anomalies**
+
+For each month $m$, estimate empirical CDFs over the overlap period only:
+
+$$
+F^{\mathrm{input2}}_{m}(a), \qquad F^{\mathrm{input1}}_{m}(a)
+$$
+
+**5. Quantile-map ERA5 anomalies**
+
+For a hindcast anomaly $A^{\mathrm{ERA5}}(t)$:
+
+$$
+q = F^{\mathrm{input2}}_{m(t)}\!\left(A^{\mathrm{input2}}(t)\right)
+$$
+
+$$
+A^{*}(t) = \left(F^{\mathrm{input1}}_{m(t)}\right)^{-1}(q)
+$$
+
+**6. Reconstruct SST by adding the observed climatology**
+
+$$
+\mathrm{input1}^{\mathrm{recon}}(t) = \mu^{\mathrm{input2}}_{m(t)} + A^{*}(t)
+$$
+
+**Methods**:
+
+“We reconstructed historical sea surface temperatures (SSTs) by applying a seasonally stratified quantile mapping bias correction to ERA5 SST anomalies relative to observed OISST anomalies during their overlap period (Cannon et al., 2015; Piani et al., 2010). We first removed the monthly climatology to generate anomalies, performed quantile mapping on the anomaly distributions by calendar month, and then added back the observed monthly climatology to create the final hindcast SST time series”
+
+**References**:
+
+-   Cannon AJ, Sobie SR, Murdock TQ (2015) Journal of Climate, 28(17), 6938–6959.
+-   Piani C, Haerter JO, Coppola E (2010) Theoretical and Applied Climatology, 99, 187–192.
+-   Gudmundsson L et al. (2012) Hydrology and Earth System Sciences, 16, 3383–3390.
+-   Cannon AJ (2018) Wiley Interdisciplinary Reviews: Climate Change, 9(1), e497.
+
+## Example 1: hindcast OISST
+
+This workflow uses OISST (1981–2025) as the observational reference to correct the longer ERA5 SST record (1940-2025) via monthly, anomaly-based quantile mapping, producing a continuous consistent OISST time series that extends back beyond the observational period.
+
+```{r}
+#| eval: true
+#| include: false
+#| message: false
+#| warning: false
+
+# Libraries
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(qmap)
+library(terra)
+library(tibble)
+library(ggplot2)
+library(patchwork)
+library(dhw)
+
+```
+
+```{r}
+#| eval: false
+#| message: false
+#| warning: false
+#| cache: true
+#| fig-height: 5
+#| fig-width: 10
+#| include: true
+
+# Libraries
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(qmap)
+library(terra)
+library(tibble)
+library(ggplot2)
+library(dhw)
+
+conflicted::conflicts_prefer(terra::intersect)
+
+GBR_OISST_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST_SST.tif")
+GBR_ERA5_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_ERA5_SST.tif")
+
+
+# Run hindcast using monthly anomaly Quantile Mapping
+GBR_OISST2_SST <- hindcast_qm(
+       input1 = GBR_OISST_SST,
+       input2 = GBR_ERA5_SST,
+       n_quantiles = 100,
+       method = "qm",
+       overlap_period = c("1982-01-01", "2020-12-31"),
+       combine = TRUE,
+       filename = "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif",
+       overwrite = TRUE
+   )
+
+       
+
+```
+
+```{r}
+#| eval: true
+#| message: false
+#| cache: true
+#| fig-height: 6
+#| fig-width: 10
+#| include: true
+
+GBR_OISST_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST_SST.tif")
+GBR_ERA5_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_ERA5_SST.tif")
+
+GBR_OISST2_SST <- c(rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif"),
+                        rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST_SST.tif"))
+
+GBR_OISST_SST_mean <- terra::global(GBR_OISST_SST, mean, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) |> 
+  mutate(dataset="1b. OISST")
+
+GBR_OISST2_SST_mean <- terra::global(GBR_OISST2_SST, mean, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) |> 
+  mutate(dataset="1a. OISST cal")
+
+GBR_ERA5_SST_mean <- terra::global(GBR_ERA5_SST, mean, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) |> 
+  mutate(dataset="2. ERA5")
+
+GBR_plotdata <- rbind(GBR_OISST2_SST_mean, GBR_ERA5_SST_mean)
+
+
+## plot
+a <- ggplot() + theme_bw() +
+  geom_line(data=GBR_plotdata, aes(date, mean, color=dataset), show.legend=TRUE) 
+
+b <- ggplot() + theme_bw() +
+  geom_line(data = GBR_plotdata |>   
+              filter(date >= as.Date("1950-01-01") & date <= as.Date("1960-01-01")), 
+            aes(date, mean, color=dataset), show.legend=FALSE) 
+
+c <- ggplot() + theme_bw() +
+  geom_line(data = GBR_plotdata|> 
+              filter(date >= as.Date("2015-01-01") & date <= as.Date("2025-01-01")), 
+            aes(date, mean, color=dataset), show.legend=FALSE) 
+
+
+a / (b | c)
+
+```
+
+## Example 2: hindcast OISST DHW
+
+The workflow uses `dhw::create_climatology()` to create DHW from the hindcast OISST:
+
+```{r}
+#| eval: false
+#| message: false
+#| cache: true
+#| fig-height: 6
+#| fig-width: 10
+#| include: true
+
+
+GBR_OISST_climatology <- create_climatology(GBR_OISST_SST)
+GBR_OISST2_climatology <- create_climatology(GBR_OISST2_SST)
+GBR_ERA5_climatology <- create_climatology(GBR_ERA5_SST)
+
+# terra::writeRaster(GBR_OISST_climatology$dhw,"/Users/rof011/GBR-dhw/datasets/GBR_OISST_DHW.tif", overwrite=TRUE)
+# 
+# terra::writeRaster(GBR_OISST2_climatology$dhw,"/Users/rof011/GBR-dhw/datasets/GBR_OISST2_DHW.tif", overwrite=TRUE)
+# 
+# terra::writeRaster(GBR_ERA5_climatology$dhw,"/Users/rof011/GBR-dhw/datasets/GBR_ERA5_DHW.tif", overwrite=TRUE)
+
+       
+
+```
+
+#### GBR-mean DHW timeseries
+
+```{r}
+#| eval: true
+#| warning: false
+#| message: false
+#| cache: false
+#| fig-height: 6
+#| fig-width: 10
+#| include: true
+
+GBR_OISST_DHW <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST_DHW.tif")
+GBR_OISST2_DHW <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST2_DHW.tif")
+GBR_ERA5_DHW <- rast("/Users/rof011/GBR-dhw/datasets/GBR_ERA5_DHW.tif")
+
+
+GBR_OISST_DHW_mean <- terra::global(GBR_OISST_DHW, mean, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="1b. OISST og")
+GBR_OISST2_DHW_mean <- terra::global(GBR_OISST2_DHW, mean, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="1a. OISST cal")
+GBR_ERA5_DHW_mean <- terra::global(GBR_ERA5_DHW, mean, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="2. ERA5")
+
+GBR_plotdata <- rbind(GBR_OISST2_DHW_mean, GBR_ERA5_DHW_mean) |> 
+  dplyr::filter(date > as.Date("01-01-1941"))
+
+a_dhw <- ggplot() + theme_bw() +
+  geom_line(data=GBR_plotdata, aes(date, mean, color=dataset), show.legend=TRUE) 
+
+b_dhw <- ggplot() + theme_bw() +
+  geom_line(data = GBR_plotdata |>   
+              filter(date >= as.Date("1950-01-01") & date <= as.Date("1960-01-01")), 
+            aes(date, mean, color=dataset), show.legend=FALSE) 
+
+c_dhw <- ggplot() + theme_bw() +
+  geom_line(data = GBR_plotdata|> 
+              filter(date >= as.Date("2015-01-01") & date <= as.Date("2025-01-01")), 
+            aes(date, mean, color=dataset), show.legend=FALSE) 
+
+
+a_dhw / (b_dhw | c_dhw)
+
+
+```
+
+#### GBR-mean annual maximum DHW
+
+```{r}
+
+
+
+GBR_OISST_DHW_max <- terra::global(GBR_OISST_DHW, max, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="1b. OISST og")
+GBR_OISST2_DHW_max <- terra::global(GBR_OISST2_DHW, max, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="1a. OISST cal")
+GBR_ERA5_DHW_max <- terra::global(GBR_ERA5_DHW, max, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="2. ERA5")
+
+GBR_OISST2_SST_max_df <- GBR_OISST2_DHW_max |> 
+  as.data.frame(wide=FALSE) |> 
+  mutate(year = year(date)) |> 
+  group_by(dataset, year) |> 
+  summarise(dhw=max(max))
+
+GBR_ERA5_SST_max_df <- GBR_ERA5_DHW_max |>
+  as.data.frame(wide=FALSE) |> 
+  mutate(year = year(date)) |> 
+  group_by(dataset, year) |> 
+  summarise(dhw=max(max))
+
+GBR_plotdata_max <- rbind(GBR_OISST2_SST_max_df, GBR_ERA5_SST_max_df) |> 
+  dplyr::filter(year > 1941)
+
+a_dhw_max <- ggplot() + theme_bw() +
+  geom_col(data=GBR_plotdata_max, aes(year, dhw, fill=dataset), col="black", lwd=0.5, show.legend=TRUE) 
+
+b_dhw_max <- ggplot() + theme_bw() +
+     geom_col(data=GBR_plotdata_max |> 
+              filter(year >1950 & year < 1960), 
+    aes(year, dhw, fill=dataset), show.legend=FALSE,  col="black", lwd=0.5) 
+
+c_dhw_max <- ggplot() + theme_bw() +
+    geom_col(data=GBR_plotdata_max |> 
+              filter(year >2015 & year < 2025), 
+    aes(year, dhw, fill=dataset), show.legend=FALSE,  col="black", lwd=0.5) 
+
+
+a_dhw_max / (b_dhw_max | c_dhw_max)
+
+
+```
+
+#### extended OISST record:
+
+To assess the long-term GBR record for OISST, convert DHW raster into a single scalar by averaging values across all grid cells to produce a GBR-wide mean of the **annual maximum DHW**, summarising the spatially distributed peak thermal stress experienced across the GBR.
+
+```{r, class.source = 'fold-show'}
+#| fig-height: 4
+#| fig-width: 9
+
+gbr_OISST2_dhw_annual_max <- summarise_raster(GBR_OISST2_DHW, index = "years", fun = max, na.rm = TRUE, overwrite = TRUE)
+
+names(gbr_OISST2_dhw_annual_max) <- seq(1940,2025,1)
+
+# For each day, calculate the average DHW across all grid cells. Then, compute the yearly average from these daily values.
+# summarise mean
+
+gbr_OISST2_dhw_annual_max_df <- gbr_OISST2_dhw_annual_max |> 
+  as.data.frame(wide=FALSE, time=TRUE) |>
+  group_by(time) |>
+  summarise(dhw=mean(values)) |>
+  rename(date=time)
+
+gbr_OISST2_dhw_annual_max_df |> 
+  ggplot() + theme_bw() + 
+    geom_col(aes(as.numeric(date), dhw, fill=dhw), show.legend=FALSE, color="black") +
+    scale_fill_distiller(palette="YlOrRd", direction=1) #+ ylim(0,5)
+
+```
+
+#### reconstructed OISST vs ERA5
+
+For most years, the hindcast SST closely reproduces the observed regional mean SST, clustering near high correlations (\>0.9) and comparable standard deviations, indicating strong temporal agreement and realistic variability.
+
+Bleaching years (coloured points) systematically shift outward toward higher standard deviations and slightly lower correlations, showing that extreme thermal years are associated with amplified variability and modest degradation in model–observation agreement, while non-bleaching years (grey) remain tightly clustered with low spread and near-perfect correlations.
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-height: 10
+#| fig-width: 10
+
+library(terra)
+library(dplyr)
+library(lubridate)
+library(tibble)
+library(plotrix)
+library(terra)
+library(dplyr)
+library(lubridate)
+library(tibble)
+library(plotrix)
+library(tidyr)
+
+df <- GBR_plotdata %>%
+  pivot_wider(names_from = dataset, values_from = mean) %>%
+  mutate(year = year(date)) %>%
+  rename(OISST2 = 2, ERA5 = 3)
+
+cor_stats <- df %>%
+  group_by(year) %>%
+  summarise(
+    n      = n(),
+    cor    = cor(OISST2, ERA5, use = "pairwise.complete.obs"),
+    sd_obs = sd(OISST2, na.rm = TRUE),
+    sd_mod = sd(ERA5,  na.rm = TRUE),
+    .groups = "drop"
+  )
+
+bleach_years <- c(1998, 2002, 2016, 2017, 2020, 2022, 2024, 2025)
+bleach_cols  <- c("red", "tomato", "firebrick", "darkred", "orangered", "brown", "deeppink", "purple")
+
+cor_stats_bleached <- cor_stats %>% filter(year %in% bleach_years)
+cor_stats_other    <- cor_stats %>% filter(!(year %in% bleach_years))
+
+# color map for bleached years only
+cols_bleached <- setNames(bleach_cols, bleach_years)
+
+
+# ---- Taylor diagram base (axes only) ----
+sd_ref <- sd(df$OISST2, na.rm = TRUE)
+sd_max <- max(c(cor_stats_bleached$sd_obs, cor_stats_bleached$sd_mod), na.rm = TRUE)
+
+#print(sd_ref)
+#print(sd_max)
+
+plotrix::taylor.diagram(
+  ref   = rnorm(100, sd = sd_ref+2),
+  model = rnorm(100, sd = sd_ref+2),
+  pos.cor = TRUE,
+  sd.arcs = pretty(c(0, sd_max)),
+  main = "Taylor diagram by year (regional mean SST)"
+)
+
+# ---- points: other years (grey, no text) ----
+x_other <- cor_stats_other$sd_mod * cor_stats_other$cor
+y_other <- cor_stats_other$sd_mod * sqrt(pmax(0, 1 - cor_stats_other$cor^2))
+
+points(x_other, y_other, pch = 16, col = "grey75")
+
+# ---- points: bleaching years (coloured + text) ----
+x_bleach <- cor_stats_bleached$sd_mod * cor_stats_bleached$cor
+y_bleach <- cor_stats_bleached$sd_mod * sqrt(pmax(0, 1 - cor_stats_bleached$cor^2))
+
+points(
+  x_bleach, y_bleach,
+  pch = 16,
+  cex = 0.9,
+  col = cols_bleached[as.character(cor_stats_bleached$year)]
+)
+
+text(
+  x_bleach, y_bleach,
+  labels = cor_stats_bleached$year,
+  pos = 3,
+  cex = 0.9,
+  col = cols_bleached[as.character(cor_stats_bleached$year)]
+)
+
+legend(
+  "topright",
+  legend = c(as.character(bleach_years), "Other years"),
+  pch = 16,
+  col = c(cols_bleached[as.character(bleach_years)], "grey75"),
+  bty = "n"
+)
+
+```
+

@@ -161,7 +161,7 @@ the full global dataset is 26.39GB in individual \~10-11MB .nc files.
 
 process_OISST(input = "/Volumes/Extreme_SSD/dhw/OISST/",
               polygon = GBR_hull, crs = "EPSG:7844",
-              combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full_2025.rds",
+              combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_2025.rds",
               crop=TRUE, mask=TRUE, downsample=FALSE, mc.cores=10)
 
 terra::rast("/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full_2025.rds")

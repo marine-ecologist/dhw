@@ -65,6 +65,8 @@ navbar:
           href: articles/visualising_outputs.html
         - text: "5. Extending the DHW metric"
           href: articles/dhw_extended.html
+        - text: "6. Hindcasting DHW records"
+          href: articles/hindcast.html
 
 reference:
 - title: Climatologies and SST Metrics
@@ -78,6 +80,7 @@ reference:
   - calculate_dhw
   - calculate_baa
   - calculate_dhmi
+  - hindcast_qm
 - title: Download data
   contents:
   - download_CoralTemp
@@ -117,3 +120,4 @@ articles:
   - validating_climatologies
   - visualising_outputs
   - dhw_extended
+  - hindcast

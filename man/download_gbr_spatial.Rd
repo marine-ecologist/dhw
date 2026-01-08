@@ -4,12 +4,12 @@
 \alias{download_gbr_spatial}
 \title{Download GBR spatial data}
 \usage{
-download_gbr_spatial(crs = "EPSG:4283", return = "base")
+download_gbr_spatial(return = "base", crs = 4283)
 }
 \arguments{
-\item{crs}{change the CRS if needed (EPSG:4283 as default)}
+\item{return}{One of "combined", "hull", "outline", or "base"}
 
-\item{return}{One of "combined", "hull", or "base"}
+\item{crs}{change the CRS if needed (EPSG:4283 as default)}
 }
 \value{
 Simple feature collection with 9612 features and 35 fields

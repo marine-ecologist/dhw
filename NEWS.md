@@ -1,3 +1,7 @@
+# dhw 1.2.0
+
+* added `hindcast_qm()`, anomaly-based quantile mapping to reconstruct a hindcast SST time series by bias-correcting a long model dataset (e.g. ERA5) to a shorter observed reference dataset (e.g. OISST), enabling extension of historical SST records.
+
 # dhw 1.1.0
 
 * fixed `downloadCoralTemp()` and `download_OISST()` to handle date vectors
