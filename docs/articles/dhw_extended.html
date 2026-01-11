@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dhw</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -143,6 +143,13 @@ Gulf (Bundegi):</p>
 <span></span>
 <span><span class="co"># get rNaturalEarth data</span></span>
 <span><span class="va">aus</span> <span class="op">&lt;-</span> <span class="fu">rnaturalearth</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/rnaturalearth/reference/ne_countries.html" class="external-link">ne_countries</a></span><span class="op">(</span>country<span class="op">=</span><span class="st">"Australia"</span>, scale<span class="op">=</span><span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crs.html" class="external-link">crs</a></span><span class="op">(</span><span class="va">ningaloo_shp</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="color: #00BBBB;">R CMD build</span> <span style="color: #00BBBB;">─────────────────────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; * checking for file ‘/private/var/folders/y9/9hk07gw12mj0hv3xvsfx4w400000gn/T/RtmpBfJEnM/remotes122465654f5c1/ropensci-rnaturalearthhires-e4736f6/DESCRIPTION’ ... OK</span></span>
+<span><span class="co">#&gt; * preparing ‘rnaturalearthhires’:</span></span>
+<span><span class="co">#&gt; * checking DESCRIPTION meta-information ... OK</span></span>
+<span><span class="co">#&gt; * checking for LF line-endings in source and make files and shell scripts</span></span>
+<span><span class="co">#&gt; * checking for empty or unneeded directories</span></span>
+<span><span class="co">#&gt; * building ‘rnaturalearthhires_1.0.0.9000.tar.gz’</span></span>
 <span><span class="va">ningaloo_park</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_binary_ops.html" class="external-link">st_difference</a></span><span class="op">(</span><span class="va">ningaloo_shp</span>, <span class="va">aus</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># map sites</span></span>
@@ -160,7 +167,7 @@ Gulf (Bundegi):</p>
 <span>  <span class="fu"><a href="https://r-tmap.github.io/tmap/reference/tm_symbols.html" class="external-link">tm_dots</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">0.6</span>, shape<span class="op">=</span><span class="fl">21</span>, fill<span class="op">=</span><span class="st">"aquamarine2"</span><span class="op">)</span> <span class="op">+</span></span>
 <span><span class="fu"><a href="https://r-tmap.github.io/tmap/reference/tm_shape.html" class="external-link">tm_shape</a></span><span class="op">(</span><span class="va">exmouth_pt</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://r-tmap.github.io/tmap/reference/tm_text.html" class="external-link">tm_text</a></span><span class="op">(</span><span class="st">"Exmouth"</span>, col<span class="op">=</span><span class="st">"white"</span>, ymod<span class="op">=</span><span class="fl">0.8</span>, xmod<span class="op">=</span><span class="fl">1.4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="dhw_extended_files/figure-html/unnamed-chunk-5-1.png" width="384"></p>
+<p><img src="dhw_extended_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="" width="384"></p>
 </div>
 <div class="section level3">
 <h3 id="maximum-dhw-per-year">Maximum DHW per year<a class="anchor" aria-label="anchor" href="#maximum-dhw-per-year"></a>
@@ -187,7 +194,7 @@ year (1982-2025):</p>
 <span><span class="va">max_dhw_ningaloo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_annual_dhw_max.html">plot_max_dhw</a></span><span class="op">(</span><span class="va">ningaloo_climatology</span><span class="op">$</span><span class="va">dhw</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Ningaloo"</span><span class="op">)</span></span>
 <span><span class="va">max_dhw_exmouth</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_annual_dhw_max.html">plot_max_dhw</a></span><span class="op">(</span><span class="va">exmouth_climatology</span><span class="op">$</span><span class="va">dhw</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Exmouth"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span></span>
 <span><span class="va">max_dhw_ningaloo</span><span class="op">+</span><span class="va">max_dhw_exmouth</span></span></code></pre></div>
-<p><img src="dhw_extended_files/figure-html/unnamed-chunk-6-1.png" width="864"></p>
+<p><img src="dhw_extended_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" alt="" width="864"></p>
 </div>
 <div class="section level3">
 <h3 id="spatial-patterns-of-sst">Spatial patterns of SST<a class="anchor" aria-label="anchor" href="#spatial-patterns-of-sst"></a>
@@ -226,7 +233,7 @@ reference cool year)</p>
 <span>  <span class="fu"><a href="https://r-tmap.github.io/tmap/reference/tm_symbols.html" class="external-link">tm_dots</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">0.6</span>, shape<span class="op">=</span><span class="fl">21</span>, fill<span class="op">=</span><span class="st">"aquamarine2"</span><span class="op">)</span> <span class="op">+</span></span>
 <span><span class="fu"><a href="https://r-tmap.github.io/tmap/reference/tm_shape.html" class="external-link">tm_shape</a></span><span class="op">(</span><span class="va">exmouth_pt</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>  <span class="fu"><a href="https://r-tmap.github.io/tmap/reference/tm_text.html" class="external-link">tm_text</a></span><span class="op">(</span><span class="st">"Exmouth"</span>, ymod<span class="op">=</span><span class="op">-</span><span class="fl">0.6</span>, xmod<span class="op">=</span><span class="fl">1.6</span><span class="op">)</span></span></code></pre></div>
-<p><img src="dhw_extended_files/figure-html/unnamed-chunk-7-1.png" width="864"></p>
+<p><img src="dhw_extended_files/figure-html/unnamed-chunk-7-1.png" class="r-plt" alt="" width="864"></p>
 </div>
 <div class="section level3">
 <h3 id="dhw-timeseries">DHW timeseries<a class="anchor" aria-label="anchor" href="#dhw-timeseries"></a>
@@ -243,7 +250,7 @@ year (Jan) than earlier events (1988, 1998).</p>
 <span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_annual_dhw.html">plot_annual_dhw</a></span><span class="op">(</span><span class="va">exmouth_climatology</span><span class="op">$</span><span class="va">dhw</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Exmouth"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">a</span><span class="op">+</span><span class="va">b</span></span></code></pre></div>
-<p><img src="dhw_extended_files/figure-html/unnamed-chunk-8-1.png" width="864"></p>
+<p><img src="dhw_extended_files/figure-html/unnamed-chunk-8-1.png" class="r-plt" alt="" width="864"></p>
 </div>
 <div class="section level3">
 <h3 id="sst-timeseries">SST timeseries<a class="anchor" aria-label="anchor" href="#sst-timeseries"></a>
@@ -295,7 +302,7 @@ climatology for the period 1985 to 2012).</p>
 <span>    legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>xintercept <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-01-01"</span><span class="op">)</span>, color <span class="op">=</span> <span class="st">"grey"</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> </span></code></pre></div>
-<p><img src="dhw_extended_files/figure-html/unnamed-chunk-9-1.png" width="864"></p>
+<p><img src="dhw_extended_files/figure-html/unnamed-chunk-9-1.png" class="r-plt" alt="" width="864"></p>
 <p>Comparing 1998 with 2025 (note the early initiation in 2025 vs
 1998)</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
@@ -306,7 +313,7 @@ climatology for the period 1985 to 2012).</p>
 <span><span class="va">year_2025</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_sst_timeseries.html">plot_sst_timeseries</a></span><span class="op">(</span><span class="va">ningaloo_climatology</span>, <span class="fl">2025</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"2025"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="op">(</span><span class="va">year_1998</span> <span class="op">/</span> <span class="va">year_2025</span><span class="op">)</span></span></code></pre></div>
-<p><img src="dhw_extended_files/figure-html/unnamed-chunk-10-1.png" width="864"></p>
+<p><img src="dhw_extended_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="" width="864"></p>
 </div>
 <div class="section level3">
 <h3 id="hotspot-profiles">Hotspot profiles<a class="anchor" aria-label="anchor" href="#hotspot-profiles"></a>
@@ -422,7 +429,7 @@ mid-Feb, and late-Feb to mid-April.</p>
 <span>    legend.box.background <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="dhw_extended_files/figure-html/unnamed-chunk-11-1.png" width="864"></p>
+<p><img src="dhw_extended_files/figure-html/unnamed-chunk-11-1.png" class="r-plt" alt="" width="864"></p>
 </div>
 <div class="section level3">
 <h3 id="dhw-profiles">DHW profiles<a class="anchor" aria-label="anchor" href="#dhw-profiles"></a>
@@ -499,7 +506,7 @@ years:</p>
 <span>    legend.box.background <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    legend.title <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="dhw_extended_files/figure-html/unnamed-chunk-12-1.png" width="864"></p>
+<p><img src="dhw_extended_files/figure-html/unnamed-chunk-12-1.png" class="r-plt" alt="" width="864"></p>
 </div>
 <div class="section level2">
 <h2 id="extending-dhw-windows">Extending DHW windows<a class="anchor" aria-label="anchor" href="#extending-dhw-windows"></a>
@@ -560,7 +567,7 @@ weeks) as follows:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_continuous</a></span><span class="op">(</span>limits<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">26</span><span class="op">)</span>, breaks<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">26</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">a</span><span class="op">+</span><span class="va">b</span></span></code></pre></div>
-<p><img src="dhw_extended_files/figure-html/unnamed-chunk-13-1.png" width="960">
+<p><img src="dhw_extended_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" alt="" width="960">
 In prolonged heating events like 2025, adjusting the windowlength for
 cumulative HotSpots results in amplified DHW. During less intense events
 like 2011, increasing windowlength results in prolonged DHW values with
@@ -628,7 +635,7 @@ anomalies that are absent in the 2011 event:</p>
 <span>    date_labels <span class="op">=</span> <span class="st">"%b"</span>,</span>
 <span>    limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"1999-11-19"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2000-06-19"</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> </span></code></pre></div>
-<p><img src="dhw_extended_files/figure-html/unnamed-chunk-14-1.png" width="960"></p>
+<p><img src="dhw_extended_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" alt="" width="960"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -641,7 +648,7 @@ anomalies that are absent in the 2011 event:</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.9000.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

@@ -1,0 +1,39 @@
+# Calculate BAA
+
+Function to calculate bleaching alert area (BAA)
+
+The BAA outlines the current locations, coverage, and potential risk
+level of coral bleaching heat stress around the world.
+
+The heat stress level in the individual Bleaching Alert Area single-day
+products at a 5km satellite data grid, on any day, is based on SST for
+that day. The coral bleaching heat stress levels are defined in the
+table below (updated in December 2023):
+
+No Stress — HotSpot \<= 0 Bleaching Watch — 0 \< HotSpot \< 1 Bleaching
+Warning — 1 \<= HotSpot and 0 \< DHW \< 4 Bleaching Alert Level 1 — 1
+\<= HotSpot and 4 \<= DHW \< 8 Bleaching Alert Level 2 — 1 \<= HotSpot
+and 8 \<= DHW \< 12 Bleaching Alert Level 3 — 1 \<= HotSpot and 12 \<=
+DHW \< 16 Bleaching Alert Level 4 — 1 \<= HotSpot and 16 \<= DHW \< 20
+Bleaching Alert Level 5 — 1 \<= HotSpot and 20 \<= DHW See vignette for
+further details.
+
+## Usage
+
+``` r
+calculate_baa(hs, dhw)
+```
+
+## Arguments
+
+- hs:
+
+  hotspots
+
+- dhw:
+
+  dhw
+
+## Value
+
+degree heating weeks (terra::rast format)

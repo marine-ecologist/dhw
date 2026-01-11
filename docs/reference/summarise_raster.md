@@ -1,0 +1,56 @@
+# Summarise rasters to year
+
+wrapper for tapp()
+
+Input rast requires time format (as.Date()) Options for index are time
+periods: "years", "months", "yearmonths", "dekads", "yeardekads",
+"weeks" (the ISO 8601 week number, see tapp() for Details), "yearweeks",
+"days", "doy" (day of the year), "7days" (seven-day periods starting at
+Jan 1 of each year), "10days", or "15days" Fun as min, max, mean etc.
+
+## Usage
+
+``` r
+summarise_raster(input, index, fun, cores = 1, na.rm = TRUE, overwrite)
+```
+
+## Arguments
+
+- input:
+
+  Input raster data.
+
+- index:
+
+  options for time, see above
+
+- fun:
+
+  summarise function see above)
+
+- cores:
+
+  number of cores, see tapp() for details
+
+- na.rm:
+
+  see tapp() for details
+
+- overwrite:
+
+  logical. If TRUE, filename is overwritten
+
+## Value
+
+summarise raster
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+noaa_dhw_file <- "https://pae-paha.pacioos.hawaii.edu/erddap/griddap/dhw_5km.nc?CRW_SST%5B(2024-12-20T12:00:00Z):1:(2024-12-25T12:00:00Z)%5D%5B(-8.9):1:(-25)%5D%5B(141):1:(153.5)%5D"
+noaa_dhw_raster <- rast(noaa_dhw_file) |> flip() |> project("EPSG:4283")
+tmp <- summarise_raster(noaa_dhw_raster, index="years", fun="min")
+tmp
+} # }
+```

@@ -146,7 +146,7 @@ GBR_OISST2_SST <- hindcast_qm(
        input1 = GBR_OISST_SST,
        input2 = GBR_ERA5_SST,
        n_quantiles = 100,
-       method = "qm",
+       method = "qdm",
        overlap_period = c("1982-01-01", "2020-12-31"),
        combine = TRUE,
        filename = "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif",
@@ -409,21 +409,22 @@ cols_bleached <- setNames(bleach_cols, bleach_years)
 sd_ref <- sd(df$OISST2, na.rm = TRUE)
 sd_max <- max(c(cor_stats_bleached$sd_obs, cor_stats_bleached$sd_mod), na.rm = TRUE)
 
-#print(sd_ref)
-#print(sd_max)
+sd_max <- 3.5
+dummy_ref <- rnorm(1000, sd = sd_max)
 
 plotrix::taylor.diagram(
-  ref   = rnorm(100, sd = sd_ref+2),
-  model = rnorm(100, sd = sd_ref+2),
+  ref   = dummy_ref,
+  model = dummy_ref,
   pos.cor = TRUE,
-  sd.arcs = pretty(c(0, sd_max)),
-  main = "Taylor diagram by year (regional mean SST)"
+  col = "white",
+  size=0,
+  sd.arcs = seq(0, sd_max, by = 0.5),
+  main = "Taylor diagram: QM vs QDM"
 )
-
 # ---- points: other years (grey, no text) ----
 x_other <- cor_stats_other$sd_mod * cor_stats_other$cor
 y_other <- cor_stats_other$sd_mod * sqrt(pmax(0, 1 - cor_stats_other$cor^2))
-
+# 
 points(x_other, y_other, pch = 16, col = "grey75")
 
 # ---- points: bleaching years (coloured + text) ----
@@ -433,8 +434,8 @@ y_bleach <- cor_stats_bleached$sd_mod * sqrt(pmax(0, 1 - cor_stats_bleached$cor^
 points(
   x_bleach, y_bleach,
   pch = 16,
-  cex = 0.9,
-  col = cols_bleached[as.character(cor_stats_bleached$year)]
+  cex = 0.9#,
+  #col = cols_bleached[as.character(cor_stats_bleached$year)]
 )
 
 text(
@@ -451,6 +452,120 @@ legend(
   pch = 16,
   col = c(cols_bleached[as.character(bleach_years)], "grey75"),
   bty = "n"
+)
+
+```
+
+## Example 3: comparing QM with QDM with OISST2
+
+
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-height: 10
+#| fig-width: 10
+
+library(terra)
+library(dplyr)
+library(lubridate)
+library(tibble)
+library(plotrix)
+library(terra)
+library(dplyr)
+library(lubridate)
+library(tibble)
+library(plotrix)
+library(tidyr)
+
+
+GBR_OISST_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST_SST.tif")
+GBR_ERA5_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif")
+
+
+# Run hindcast using monthly anomaly Quantile Mapping
+GBR_OISST2_SST_QM <- hindcast_qm(
+       input1 = GBR_OISST_SST,
+       input2 = GBR_ERA5_SST,
+       n_quantiles = 100,
+       method = "qm",
+       overlap_period = c("1982-01-01", "2020-12-31"),
+       combine = TRUE,
+       filename = "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif",
+       overwrite = TRUE
+   ) %>% 
+  terra::global(., mean, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) |> 
+  mutate(dataset="QM")
+
+GBR_OISST2_SST_QDM <- hindcast_qm(
+       input1 = GBR_OISST_SST,
+       input2 = GBR_ERA5_SST,
+       n_quantiles = 100,
+       method = "qdm",
+       overlap_period = c("1982-01-01", "2020-12-31"),
+       combine = TRUE,
+       filename = "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif",
+       overwrite = TRUE
+   ) %>% 
+  terra::global(., mean, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) |> 
+  mutate(dataset="QDM")
+
+qdm_qm <- rbind(GBR_OISST2_SST_QM, GBR_OISST2_SST_QDM) %>%
+  pivot_wider(names_from = dataset, values_from = mean) %>%
+  mutate(year = year(date)) %>%
+  rename(QM = 2, QDM = 3)
+
+cor_stats_qdm_qm <- qdm_qm %>%
+  group_by(year) %>%
+  summarise(
+    n      = n(),
+    cor    = cor(QM, QDM, use = "pairwise.complete.obs"),
+    sd_obs = sd(QM, na.rm = TRUE),
+    sd_mod = sd(QDM,  na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# reference SD (QM)
+sd_ref <- sd(qdm_qm$QDM, na.rm = TRUE)
+
+# max SD for axis scaling
+sd_max <- max(c(cor_stats_qdm_qm$sd_obs+2,
+                cor_stats_qdm_qm$sd_mod+2), na.rm = TRUE)
+
+sd_max <- 3.5
+dummy_ref <- rnorm(1000, sd = sd_max)
+
+plotrix::taylor.diagram(
+  ref   = dummy_ref,
+  model = dummy_ref,
+  pos.cor = TRUE,
+  col = "white",
+  size=0,
+  sd.arcs = seq(0, sd_max, by = 0.5),
+  main = "Taylor diagram: QM vs QDM"
+)
+
+# coordinates for points
+x <- cor_stats_qdm_qm$sd_mod * cor_stats_qdm_qm$cor
+y <- cor_stats_qdm_qm$sd_mod * sqrt(pmax(0, 1 - cor_stats_qdm_qm$cor^2))
+
+# plot points
+points(
+  x, y,
+  pch = 21,
+  bg  = "steelblue",
+  col = "black",
+  cex = 1.1
+)
+
+# label years
+text(
+  x, y,
+  labels = cor_stats_qdm_qm$year,
+  pos = 3,
+  cex = 0.7
 )
 
 ```
