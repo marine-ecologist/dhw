@@ -67,7 +67,7 @@
 #'   calibration period to perform quantile mapping (default = 10).
 #'
 #' @param verbose logical
-#'   If TRUE (default), prints progress and diagnostic information.
+#'   If TRUE (!default), prints progress and diagnostic information.
 #'
 #' @return terra::SpatRaster
 #'   Bias-corrected hindcast raster. If `combine = TRUE`, the output spans from
@@ -111,11 +111,14 @@ hindcast_qm <- function(input1, input2,
                         overwrite = TRUE,
                         wopt = list(datatype = "FLT4S", gdal = c("COMPRESS=LZW")),
                         min_n = 10,
-                        verbose = TRUE) {
-
+                        verbose = TRUE,
+                        silent = TRUE) {
 
   method <- tolower(match.arg(method))
-  msg <- function(...) if (isTRUE(verbose)) cat(..., "\n")
+
+  msg <- function(...) {
+    if (!silent && isTRUE(verbose)) cat(..., "\n")
+  }
 
   as_date_time <- function(x) {
     tt <- terra::time(x)
@@ -165,7 +168,11 @@ hindcast_qm <- function(input1, input2,
 
   d1_overlap <- t1[t1 >= overlap_start & t1 <= overlap_end]
   d2_overlap <- t2[t2 >= overlap_start & t2 <= overlap_end]
-  common_dates <- as.Date(intersect(as.numeric(d1_overlap), as.numeric(d2_overlap)), origin = "1970-01-01") %>% sort()
+  common_dates <- as.Date(
+    intersect(as.numeric(d1_overlap), as.numeric(d2_overlap)),
+    origin = "1970-01-01"
+  ) |> sort()
+
   if (!length(common_dates)) stop("No matching dates found in overlap period.")
 
   idx1_cal <- match(common_dates, t1)
@@ -177,13 +184,13 @@ hindcast_qm <- function(input1, input2,
 
   msg("hind:", format(min(hind_dates)), "..", format(max(hind_dates)), "(", length(hind_dates), ")")
 
-  # ---- month partitions (indices within cal/hind vectors)
-  cal_month  <- month(common_dates)
-  hind_month <- month(hind_dates)
+  # ---- month partitions
+  cal_month  <- lubridate::month(common_dates)
+  hind_month <- lubridate::month(hind_dates)
   cal_idx_by_month  <- lapply(1:12, \(m) which(cal_month == m))
   hind_idx_by_month <- lapply(1:12, \(m) which(hind_month == m))
 
-  # ---- pull values as matrices: [cell, time]
+  # ---- pull values
   msg("reading values into memory (mat=TRUE) ...")
   obs_cal_mat  <- terra::values(input1[[idx1_cal]], mat = TRUE)
   mod_cal_mat  <- terra::values(input2[[idx2_cal]], mat = TRUE)
@@ -245,7 +252,6 @@ hindcast_qm <- function(input1, input2,
       out_mat[i, hi[ok]] <- obs_clim + anom_corr
     }
   }
-
   out_hind <- terra::rast(input1, nlyr = length(hind_dates))
   terra::time(out_hind) <- hind_dates
   names(out_hind) <- as.character(hind_dates)
@@ -253,14 +259,41 @@ hindcast_qm <- function(input1, input2,
   msg("setting values + writing ...")
   out_hind <- terra::setValues(out_hind, out_mat)
 
-  if (!is.null(filename)) {
-    out_hind <- terra::writeRaster(out_hind, filename = filename, overwrite = overwrite, wopt = wopt)
+  # helper: write via temp then replace target (avoids "source and target same")
+  write_safe <- function(x, filename, overwrite, wopt) {
+    if (is.null(filename)) return(x)
+
+    dir.create(dirname(filename), recursive = TRUE, showWarnings = FALSE)
+
+    tmp <- tempfile(pattern = "terra_write_", tmpdir = dirname(filename), fileext = ".tif")
+    terra::writeRaster(x, tmp, overwrite = TRUE, wopt = wopt)
+
+    if (file.exists(filename)) {
+      ok <- file.remove(filename)
+      if (!ok) stop("Could not remove existing file: ", filename)
+    }
+
+    ok <- file.rename(tmp, filename)
+    if (!ok) stop("Could not rename temp file to target: ", filename)
+
+    terra::rast(filename)
   }
 
-  if (!combine) return(out_hind)
+  # if filename is supplied and combine=FALSE, write hindcast only
+  if (!combine) {
+    out_hind <- write_safe(out_hind, filename, overwrite, wopt)
+    return(out_hind)
+  }
 
+  # combine hindcast + input1
   combined <- c(out_hind, input1)
   tt <- as_date_time(combined)
   combined <- combined[[order(tt)]]
+
+  # if filename supplied and combine=TRUE, write combined (safe)
+  if (!is.null(filename)) {
+    combined <- write_safe(combined, filename, overwrite, wopt)
+  }
+
   combined
 }

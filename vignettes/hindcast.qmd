@@ -138,7 +138,7 @@ library(dhw)
 conflicted::conflicts_prefer(terra::intersect)
 
 GBR_OISST_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST_SST.tif")
-GBR_ERA5_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_ERA5_SST.tif")
+GBR_ERA5_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif")
 
 
 # Run hindcast using monthly anomaly Quantile Mapping
@@ -280,6 +280,10 @@ a_dhw / (b_dhw | c_dhw)
 #### GBR-mean annual maximum DHW
 
 ```{r}
+#| message: false
+#| warning: false
+#| fig-height: 8
+#| fig-width: 8
 
 
 
@@ -450,4 +454,3 @@ legend(
 )
 
 ```
-
