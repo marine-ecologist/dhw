@@ -3,12 +3,13 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   calculating_climatologies: calculating_climatologies.html
+  changepoint: changepoint.html
   dhw_extended: dhw_extended.html
   extracting_data: extracting_data.html
   hindcast: hindcast.html
   validating_climatologies: validating_climatologies.html
   visualising_outputs: visualising_outputs.html
-last_built: 2026-01-11T22:13Z
+last_built: 2026-01-27T04:06Z
 urls:
   reference: https://marine-ecologist.github.io/dhw/reference
   article: https://marine-ecologist.github.io/dhw/articles

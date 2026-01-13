@@ -40,12 +40,12 @@ plot_max_dhw <- function(dhw_rast) {
   base::names(annual_max) <- base::sub("^X", "", base::names(annual_max))
 
   # to data.frame (wide=layer names -> columns), then long to year/maxdhw
-  inputmax <- terra::as.data.frame(annual_max, xy = FALSE) |>
+  inputmax <- terra::as.data.frame(annual_max, xy = FALSE) %>%
     tidyr::pivot_longer(
       cols      = tidyselect::everything(),
       names_to  = "year",
       values_to = "maxdhw"
-    ) |>
+    ) %>%
     dplyr::mutate(year = base::as.integer(.data$year))
 
   start_year <- base::min(inputmax$year, na.rm = TRUE) - 1

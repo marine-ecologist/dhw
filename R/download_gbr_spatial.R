@@ -52,31 +52,31 @@ download_gbr_spatial <- function(return="base", crs = 4283) {
 
   # Load and transform the shapefile
   message("Reading and transforming shapefile...")
-  gbr_shape <- sf::st_read(shapefile_path, quiet = TRUE) |>
+  gbr_shape <- sf::st_read(shapefile_path, quiet = TRUE) %>%
     sf::st_transform(crs)
 
   if (return=="combined"){
 
-    gbr_files <- gbr_shape |> sf::st_transform(crs)
+    gbr_files <- gbr_shape %>% sf::st_transform(crs)
     gbr_files$LABEL_ID_FULL <- gbr_files$LABEL_ID
     gbr_files$LABEL_ID <- stringr::str_extract(gbr_files$LABEL_ID_FULL, "^\\d{2}-\\d{3}")
 
-    label_ids <- gbr_files |>
-      dplyr::filter(FEAT_NAME %in% c("Reef", "Terrestrial Reef", "Island", "Rock", "Bank")) |> # expanded to include island/rock/bank to match GBRMPA aerial surveys
-      as.data.frame() |>
-      dplyr::select(LABEL_ID, GBR_NAME, SHAPE_AREA) |>
-      dplyr::group_by(LABEL_ID) |>
-      dplyr::slice_max(order_by = SHAPE_AREA, n = 1, with_ties = FALSE) |>
+    label_ids <- gbr_files %>%
+      dplyr::filter(FEAT_NAME %in% c("Reef", "Terrestrial Reef", "Island", "Rock", "Bank")) %>% # expanded to include island/rock/bank to match GBRMPA aerial surveys
+      as.data.frame() %>%
+      dplyr::select(LABEL_ID, GBR_NAME, SHAPE_AREA) %>%
+      dplyr::group_by(LABEL_ID) %>%
+      dplyr::slice_max(order_by = SHAPE_AREA, n = 1, with_ties = FALSE) %>%
       dplyr::select(-SHAPE_AREA)
 
-    gbr_shape <- gbr_files |>
-    #dplyr::filter(FEAT_NAME %in% c("Reef", "Terestrial Reef")) |>
-      sf::st_make_valid() |>
-      dplyr::group_by(LABEL_ID) |>
-      dplyr::summarize(geometry = sf::st_union(geometry)) |>
-      dplyr::ungroup() |>
+    gbr_shape <- gbr_files %>%
+    #dplyr::filter(FEAT_NAME %in% c("Reef", "Terestrial Reef")) %>%
+      sf::st_make_valid() %>%
+      dplyr::group_by(LABEL_ID) %>%
+      dplyr::summarize(geometry = sf::st_union(geometry)) %>%
+      dplyr::ungroup() %>%
       dplyr::left_join(label_ids, by="LABEL_ID") %>%
-      dplyr::mutate(area = sf::st_area(.))|>
+      dplyr::mutate(area = sf::st_area(.))%>%
       mutate(
         GBR_NAME = stringr::str_remove(GBR_NAME, " \\(Lagoon\\)") # fix LIRS
       )
@@ -86,20 +86,20 @@ download_gbr_spatial <- function(return="base", crs = 4283) {
 
   } else if (return=="hull"){
 
-    gbr_hull <- gbr_shape |>
-      sf::st_make_valid() |>
-      dplyr::filter(FEAT_NAME %in% c("Reef", "Terrestrial Reef")) |>
-      concaveman::concaveman() |>
-      sf::st_make_valid() |>
-      sf::st_buffer(1000) |>
+    gbr_hull <- gbr_shape %>%
+      sf::st_make_valid() %>%
+      dplyr::filter(FEAT_NAME %in% c("Reef", "Terrestrial Reef")) %>%
+      concaveman::concaveman() %>%
+      sf::st_make_valid() %>%
+      sf::st_buffer(1000) %>%
       sf::st_transform(crs)
 
     return(gbr_hull)
 
   } else if (return=="outline"){
 
-    gbr_outline <- sf::st_read(shapefile_path, quiet = TRUE) |>
-      dplyr::slice_max(SHAPE_AREA, n=1) |>
+    gbr_outline <- sf::st_read(shapefile_path, quiet = TRUE) %>%
+      dplyr::slice_max(SHAPE_AREA, n=1) %>%
       sf::st_transform(crs)
 
     return(gbr_outline)

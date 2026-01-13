@@ -67,6 +67,8 @@ navbar:
           href: articles/dhw_extended.html
         - text: "6. Hindcasting DHW records"
           href: articles/hindcast.html
+        - text: "7. Bayesian changepoint detection and DHW"
+          href: articles/changepoint.html
 
 reference:
 - title: Climatologies and SST Metrics
@@ -80,7 +82,7 @@ reference:
   - calculate_dhw
   - calculate_baa
   - calculate_dhmi
-  - hindcast_qm
+  - hindcast
 - title: Download data
   contents:
   - download_CoralTemp
@@ -121,3 +123,4 @@ articles:
   - visualising_outputs
   - dhw_extended
   - hindcast
+  - changepoint

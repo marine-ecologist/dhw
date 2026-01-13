@@ -60,7 +60,7 @@ isComplete <- function(paths,
       file = list.files(p, pattern = "\\.nc$", full.names = TRUE,
                         recursive = recurse, ignore.case = TRUE)
     )
-  }) |>
+  }) %>%
     list_rbind()
 
   if (nrow(files_tbl) == 0) {
@@ -79,15 +79,15 @@ isComplete <- function(paths,
   }
 
   # parse dates from filenames (use last 8-digit token)
-  files_tbl <- files_tbl |>
+  files_tbl <- files_tbl %>%
     dplyr::mutate(
       fname = basename(.data$file),
-      date_str = stringr::str_extract_all(.data$fname, date_regex) |>
+      date_str = stringr::str_extract_all(.data$fname, date_regex) %>%
         purrr::map_chr(~ if (length(.x)) utils::tail(.x, 1) else NA_character_),
       date = ifelse(!is.na(.data$date_str) & nchar(.data$date_str) == 8,
-                    .data$date_str, NA_character_) |>
+                    .data$date_str, NA_character_) %>%
         as.Date(format = "%Y%m%d")
-    ) |>
+    ) %>%
     dplyr::filter(!is.na(.data$date))
 
   if (nrow(files_tbl) == 0) {
@@ -143,8 +143,8 @@ isComplete <- function(paths,
   expected_seq <- seq.Date(start_date, end_date, by = cadence_days)
 
   missing <- sort(setdiff(expected_seq, dates))
-  duplicates <- files_tbl |>
-    dplyr::count(.data$date, name = "n") |>
+  duplicates <- files_tbl %>%
+    dplyr::count(.data$date, name = "n") %>%
     dplyr::filter(.data$n > 1L)
 
   summary_tbl <- tibble::tibble(

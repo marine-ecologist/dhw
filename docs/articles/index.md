@@ -14,3 +14,5 @@
   Weeks](https://marine-ecologist.github.io/dhw/articles/dhw_extended.md):
 - [Monthly-anomaly Quantile Mapping (QM) hindcast
   reconstructions](https://marine-ecologist.github.io/dhw/articles/hindcast.md):
+- [Bayesian changepoint detection and
+  OISST2](https://marine-ecologist.github.io/dhw/articles/changepoint.md):

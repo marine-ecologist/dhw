@@ -19,32 +19,32 @@ plot_mm <- function(input, lon, lat) {
   point <- terra::vect(cbind(lon, lat), crs = "EPSG:4326")
 
   # Extract the single cell as a SpatRaster
-  input <- terra::mask(input, point)# |> terra::mask(point)
+  input <- terra::mask(input, point)# %>% terra::mask(point)
 
   # Convert input to a data frame
-  input_df <- input |> terra::as.data.frame(xy = TRUE, wide = FALSE, time = TRUE)
+  input_df <- input %>% terra::as.data.frame(xy = TRUE, wide = FALSE, time = TRUE)
 
   # Process annual data
-  input_df_annual <- input_df |>
-    dplyr::mutate(time = as.Date(time), year = lubridate::year(time), month = lubridate::month(time)) |>
-    dplyr::group_by(year, month) |>
-    dplyr::summarise(sst = mean(values), .groups = 'drop') |>
+  input_df_annual <- input_df %>%
+    dplyr::mutate(time = as.Date(time), year = lubridate::year(time), month = lubridate::month(time)) %>%
+    dplyr::group_by(year, month) %>%
+    dplyr::summarise(sst = mean(values), .groups = 'drop') %>%
     dplyr::filter(year >= 1985, year <= 2012)
 
   # Calculate predictions, slopes, and intercepts
-  input_predict_1998 <- input |> calculate_monthly_mean(return = "predict", midpoint = 1998.5) |>
-    terra::as.data.frame(xy = FALSE, wide = FALSE, time = FALSE) |>
+  input_predict_1998 <- input %>% calculate_monthly_mean(return = "predict", midpoint = 1998.5) %>%
+    terra::as.data.frame(xy = FALSE, wide = FALSE, time = FALSE) %>%
     dplyr::mutate(month = 1:12)
 
-  input_predict <- input |> calculate_monthly_mean(return = "predict", midpoint = 1988.2857) |>
-    terra::as.data.frame(xy = FALSE, wide = FALSE, time = FALSE) |>
+  input_predict <- input %>% calculate_monthly_mean(return = "predict", midpoint = 1988.2857) %>%
+    terra::as.data.frame(xy = FALSE, wide = FALSE, time = FALSE) %>%
     dplyr::mutate(month = 1:12)
 
-  input_slope <- input |> calculate_monthly_mean(return = "slope")
-  input_intercept <- input |> calculate_monthly_mean(return = "intercept")
+  input_slope <- input %>% calculate_monthly_mean(return = "slope")
+  input_intercept <- input %>% calculate_monthly_mean(return = "intercept")
 
   # Prepare plot data
-  plot_data <- input_df_annual |>
+  plot_data <- input_df_annual %>%
     dplyr::mutate(
       slope = sapply(month, function(m) as.numeric(input_slope[[m]][1])),
       intercept = sapply(month, function(m) as.numeric(input_intercept[[m]][1]))

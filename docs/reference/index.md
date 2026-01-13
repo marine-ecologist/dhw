@@ -20,9 +20,9 @@
   : Calculate BAA
 - [`calculate_dhmi()`](https://marine-ecologist.github.io/dhw/reference/calculate_dhmi.md)
   : Calculate Degree Heating Month Index (DHMi)
-- [`hindcast_qm()`](https://marine-ecologist.github.io/dhw/reference/hindcast_qm.md)
+- [`hindcast()`](https://marine-ecologist.github.io/dhw/reference/hindcast.md)
   : Hindcast Bias-Corrected Raster Time Series via Monthly Anomaly
-  Quantile Mapping
+  Quantile Mapping (QM/QDM)
 
 ## Download data
 

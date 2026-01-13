@@ -8,7 +8,9 @@ format:
 editor: visual
 ---
 
-```{r, message=FALSE, warning=FALSE, cache=TRUE, class.source = 'fold-hide'}
+```{r}
+#| message: false
+#| warning: false
 #| fig-height: 5
 #| fig-width: 10
 
@@ -22,9 +24,10 @@ library(ggplot2)
 library(dhw)
 
 conflicted::conflicts_prefer(terra::intersect)
+conflicts_prefer(dplyr::select)
 ```
 
-The `hindcast_qm()` function performs anomaly-based quantile mapping to reconstruct a hindcast SST time series by bias-correcting a long model dataset (e.g. ERA5) to a shorter observed reference dataset (e.g. OISST), enabling extension of historical SST records. The method removes and corrects monthly anomalies rather than absolute values, ensuring that the reconstructed hindcast exactly matches the observed OISST seasonal cycle, reproduces the observed within-month anomaly distributions, retains ERA5’s sub-seasonal temporal variability, produces a continuous time series across the hindcast–observation boundary, and avoids artificial amplification of the seasonal temperature range.
+The `hindcast()` function performs anomaly-based quantile mapping to reconstruct a hindcast SST time series by bias-correcting a long model dataset (e.g. ERA5) to a shorter observed reference dataset (e.g. OISST), enabling extension of historical SST records. The method removes and corrects monthly anomalies rather than absolute values, ensuring that the reconstructed hindcast exactly matches the observed OISST seasonal cycle, reproduces the observed within-month anomaly distributions, retains ERA5’s sub-seasonal temporal variability, produces a continuous time series across the hindcast–observation boundary, and avoids artificial amplification of the seasonal temperature range.
 
 For each grid cell (e.g. `input1 = OISST` and `input2 = ERA5`)
 
@@ -138,18 +141,18 @@ library(dhw)
 conflicted::conflicts_prefer(terra::intersect)
 
 GBR_OISST_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST_SST.tif")
-GBR_ERA5_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif")
+GBR_ERA5_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_ERA5_SST.tif")
 
 
 # Run hindcast using monthly anomaly Quantile Mapping
-GBR_OISST2_SST <- hindcast_qm(
+GBR_OISST2_SST <- hindcast(
        input1 = GBR_OISST_SST,
        input2 = GBR_ERA5_SST,
        n_quantiles = 100,
        method = "qdm",
        overlap_period = c("1982-01-01", "2020-12-31"),
        combine = TRUE,
-       filename = "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif",
+       filename = "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST.tif",
        overwrite = TRUE
    )
 
@@ -166,10 +169,8 @@ GBR_OISST2_SST <- hindcast_qm(
 #| include: true
 
 GBR_OISST_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST_SST.tif")
+GBR_OISST2_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST.tif")
 GBR_ERA5_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_ERA5_SST.tif")
-
-GBR_OISST2_SST <- c(rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif"),
-                        rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST_SST.tif"))
 
 GBR_OISST_SST_mean <- terra::global(GBR_OISST_SST, mean, na.rm = TRUE) %>%
   mutate(date = as.Date(rownames(.))) |> 
@@ -200,7 +201,7 @@ c <- ggplot() + theme_bw() +
               filter(date >= as.Date("2015-01-01") & date <= as.Date("2025-01-01")), 
             aes(date, mean, color=dataset), show.legend=FALSE) 
 
-
+library(patchwork)
 a / (b | c)
 
 ```
@@ -224,7 +225,12 @@ GBR_ERA5_climatology <- create_climatology(GBR_ERA5_SST)
 
 # terra::writeRaster(GBR_OISST_climatology$dhw,"/Users/rof011/GBR-dhw/datasets/GBR_OISST_DHW.tif", overwrite=TRUE)
 # 
-# terra::writeRaster(GBR_OISST2_climatology$dhw,"/Users/rof011/GBR-dhw/datasets/GBR_OISST2_DHW.tif", overwrite=TRUE)
+terra::writeRaster(GBR_OISST2_climatology$dhw,
+                   "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_DHW.tif", overwrite=TRUE)
+terra::writeRaster(GBR_OISST2_climatology$anomaly,
+                   "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SSTA.tif", overwrite=TRUE)
+terra::writeRaster(GBR_OISST2_climatology$hotspots,
+                   "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_HS.tif", overwrite=TRUE)
 # 
 # terra::writeRaster(GBR_ERA5_climatology$dhw,"/Users/rof011/GBR-dhw/datasets/GBR_ERA5_DHW.tif", overwrite=TRUE)
 
@@ -249,11 +255,11 @@ GBR_ERA5_DHW <- rast("/Users/rof011/GBR-dhw/datasets/GBR_ERA5_DHW.tif")
 
 
 GBR_OISST_DHW_mean <- terra::global(GBR_OISST_DHW, mean, na.rm = TRUE) %>%
-  mutate(date = as.Date(rownames(.))) |> mutate(dataset="1b. OISST og")
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="2b. OISST og")
 GBR_OISST2_DHW_mean <- terra::global(GBR_OISST2_DHW, mean, na.rm = TRUE) %>%
-  mutate(date = as.Date(rownames(.))) |> mutate(dataset="1a. OISST cal")
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="2a. OISST cal")
 GBR_ERA5_DHW_mean <- terra::global(GBR_ERA5_DHW, mean, na.rm = TRUE) %>%
-  mutate(date = as.Date(rownames(.))) |> mutate(dataset="2. ERA5")
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="1. ERA5")
 
 GBR_plotdata <- rbind(GBR_OISST2_DHW_mean, GBR_ERA5_DHW_mean) |> 
   dplyr::filter(date > as.Date("01-01-1941"))
@@ -268,7 +274,7 @@ b_dhw <- ggplot() + theme_bw() +
 
 c_dhw <- ggplot() + theme_bw() +
   geom_line(data = GBR_plotdata|> 
-              filter(date >= as.Date("2015-01-01") & date <= as.Date("2025-01-01")), 
+              filter(date >= as.Date("2016-01-01") & date <= as.Date("2026-01-01")), 
             aes(date, mean, color=dataset), show.legend=FALSE) 
 
 
@@ -288,11 +294,11 @@ a_dhw / (b_dhw | c_dhw)
 
 
 GBR_OISST_DHW_max <- terra::global(GBR_OISST_DHW, max, na.rm = TRUE) %>%
-  mutate(date = as.Date(rownames(.))) |> mutate(dataset="1b. OISST og")
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="2b. OISST og")
 GBR_OISST2_DHW_max <- terra::global(GBR_OISST2_DHW, max, na.rm = TRUE) %>%
-  mutate(date = as.Date(rownames(.))) |> mutate(dataset="1a. OISST cal")
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="2a. OISST cal")
 GBR_ERA5_DHW_max <- terra::global(GBR_ERA5_DHW, max, na.rm = TRUE) %>%
-  mutate(date = as.Date(rownames(.))) |> mutate(dataset="2. ERA5")
+  mutate(date = as.Date(rownames(.))) |> mutate(dataset="1. ERA5")
 
 GBR_OISST2_SST_max_df <- GBR_OISST2_DHW_max |> 
   as.data.frame(wide=FALSE) |> 
@@ -434,8 +440,8 @@ y_bleach <- cor_stats_bleached$sd_mod * sqrt(pmax(0, 1 - cor_stats_bleached$cor^
 points(
   x_bleach, y_bleach,
   pch = 16,
-  cex = 0.9#,
-  #col = cols_bleached[as.character(cor_stats_bleached$year)]
+  cex = 0.9,
+  col = cols_bleached[as.character(cor_stats_bleached$year)]
 )
 
 text(
@@ -458,114 +464,112 @@ legend(
 
 ## Example 3: comparing QM with QDM with OISST2
 
-
-
 ```{r}
 #| message: false
 #| warning: false
 #| fig-height: 10
 #| fig-width: 10
 
-library(terra)
-library(dplyr)
 library(lubridate)
 library(tibble)
 library(plotrix)
 library(terra)
 library(dplyr)
 library(lubridate)
-library(tibble)
 library(plotrix)
-library(tidyr)
+library(dhw)
 
+library(terra)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(plotrix)
 
 GBR_OISST_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST_SST.tif")
-GBR_ERA5_SST <- rast("/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif")
+GBR_ERA5_SST  <- rast("/Users/rof011/GBR-dhw/datasets/GBR_ERA5_SST.tif")
 
+# ---- QM raster + global mean ----
+GBR_OISST2_SST_QM_rast <- hindcast(
+  input1         = GBR_OISST_SST,
+  input2         = GBR_ERA5_SST,
+  n_quantiles    = 100,
+  method         = "qm",
+  overlap_period = c("1982-01-01", "2020-12-31"),
+  combine        = TRUE,
+  filename       = "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif",
+  overwrite      = TRUE
+)
 
-# Run hindcast using monthly anomaly Quantile Mapping
-GBR_OISST2_SST_QM <- hindcast_qm(
-       input1 = GBR_OISST_SST,
-       input2 = GBR_ERA5_SST,
-       n_quantiles = 100,
-       method = "qm",
-       overlap_period = c("1982-01-01", "2020-12-31"),
-       combine = TRUE,
-       filename = "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif",
-       overwrite = TRUE
-   ) %>% 
-  terra::global(., mean, na.rm = TRUE) %>%
-  mutate(date = as.Date(rownames(.))) |> 
-  mutate(dataset="QM")
+GBR_OISST2_SST_QM <- terra::global(GBR_OISST2_SST_QM_rast, mean, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) %>%
+  mutate(dataset = "QM") %>%
+  select(date, mean, dataset)
 
-GBR_OISST2_SST_QDM <- hindcast_qm(
-       input1 = GBR_OISST_SST,
-       input2 = GBR_ERA5_SST,
-       n_quantiles = 100,
-       method = "qdm",
-       overlap_period = c("1982-01-01", "2020-12-31"),
-       combine = TRUE,
-       filename = "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQM_month.tif",
-       overwrite = TRUE
-   ) %>% 
-  terra::global(., mean, na.rm = TRUE) %>%
-  mutate(date = as.Date(rownames(.))) |> 
-  mutate(dataset="QDM")
+# ---- QDM raster + global mean ----
+GBR_OISST2_SST_QDM_rast <- hindcast(
+  input1         = GBR_OISST_SST,
+  input2         = GBR_ERA5_SST,
+  n_quantiles    = 100,
+  method         = "qdm",
+  overlap_period = c("1982-01-01", "2020-12-31"),
+  combine        = TRUE,
+  filename       = "/Users/rof011/GBR-dhw/datasets/GBR_OISST2_SST_anomQDM_month.tif",
+  overwrite      = TRUE
+)
 
-qdm_qm <- rbind(GBR_OISST2_SST_QM, GBR_OISST2_SST_QDM) %>%
-  pivot_wider(names_from = dataset, values_from = mean) %>%
-  mutate(year = year(date)) %>%
-  rename(QM = 2, QDM = 3)
+GBR_OISST2_SST_QDM <- terra::global(GBR_OISST2_SST_QDM_rast, mean, na.rm = TRUE) %>%
+  mutate(date = as.Date(rownames(.))) %>%
+  mutate(dataset = "QDM") %>%
+  select(date, mean, dataset)
 
+# ---- wide table (avoid list-columns) ----
+qdm_qm <- bind_rows(GBR_OISST2_SST_QM, GBR_OISST2_SST_QDM) %>%
+  pivot_wider(
+    names_from  = dataset,
+    values_from = mean,
+    values_fn   = list(mean = mean)
+  ) %>%
+  mutate(
+    QM  = as.numeric(QM),
+    QDM = as.numeric(QDM),
+    year = year(date)
+  ) %>%
+  select(date, year, QM, QDM)
+
+# ---- yearly Taylor inputs ----
 cor_stats_qdm_qm <- qdm_qm %>%
   group_by(year) %>%
   summarise(
-    n      = n(),
+    n      = sum(!is.na(QM) & !is.na(QDM)),
     cor    = cor(QM, QDM, use = "pairwise.complete.obs"),
-    sd_obs = sd(QM, na.rm = TRUE),
-    sd_mod = sd(QDM,  na.rm = TRUE),
+    sd_obs = sd(QM,  na.rm = TRUE),
+    sd_mod = sd(QDM, na.rm = TRUE),
     .groups = "drop"
   )
 
-# reference SD (QM)
-sd_ref <- sd(qdm_qm$QDM, na.rm = TRUE)
+# ---- Taylor diagram frame ----
+sd_max <- max(c(cor_stats_qdm_qm$sd_obs, cor_stats_qdm_qm$sd_mod), na.rm = TRUE)
+sd_max <- ceiling((sd_max + 0.5) * 2) / 2  # round up to nearest 0.5
 
-# max SD for axis scaling
-sd_max <- max(c(cor_stats_qdm_qm$sd_obs+2,
-                cor_stats_qdm_qm$sd_mod+2), na.rm = TRUE)
-
-sd_max <- 3.5
 dummy_ref <- rnorm(1000, sd = sd_max)
 
 plotrix::taylor.diagram(
-  ref   = dummy_ref,
-  model = dummy_ref,
-  pos.cor = TRUE,
-  col = "white",
-  size=0,
-  sd.arcs = seq(0, sd_max, by = 0.5),
-  main = "Taylor diagram: QM vs QDM"
+  ref      = dummy_ref,
+  model    = dummy_ref,
+  pos.cor  = TRUE,
+  col      = "white",
+  size     = 0,
+  sd.arcs  = seq(0, sd_max, by = 0.5),
+  main     = "Taylor diagram: QM vs QDM"
 )
 
-# coordinates for points
 x <- cor_stats_qdm_qm$sd_mod * cor_stats_qdm_qm$cor
 y <- cor_stats_qdm_qm$sd_mod * sqrt(pmax(0, 1 - cor_stats_qdm_qm$cor^2))
 
-# plot points
-points(
-  x, y,
-  pch = 21,
-  bg  = "steelblue",
-  col = "black",
-  cex = 1.1
-)
-
-# label years
-text(
-  x, y,
-  labels = cor_stats_qdm_qm$year,
-  pos = 3,
-  cex = 0.7
-)
+points(x, y, pch = 21, bg = "steelblue", col = "black", cex = 1.1)
+text(x, y, labels = cor_stats_qdm_qm$year, pos = 3, cex = 0.7)
 
 ```
+
+## Example 4: comparing DHW outputs 
+

@@ -50,8 +50,8 @@
 #' ### annual mean reef-average maxDHW
 #' gbr_era5_dhw_mean_annual_max <- extract_reefs(gbr_era5_dhw_annual_max, gbr_files, output="df", varname="dhw", weights="area", fun="mean")
 #'
-#' gbr_era5_dhw_mean_annual_max_summarised <- gbr_era5_dhw_mean_annual_max |>
-#'   group_by(date) |>
+#' gbr_era5_dhw_mean_annual_max_summarised <- gbr_era5_dhw_mean_annual_max %>%
+#'   group_by(date) %>%
 #'   summarise(dhw = mean(dhw, na.rm=TRUE))
 #'
 #'
@@ -75,9 +75,9 @@
 #' ### annual mean reef-average SST
 #' gbr_era5_SST_mean_annual_max <- extract_reefs(gbr_era5_sst_annual_max, gbr_files, output="df", varname="sst", weights="area", fun="mean")
 #'
-#' gbr_era5_sst_mean_annual_max_summarised <- gbr_era5_SST_mean_annual_max |>
-#'   group_by(date) |>
-#'   summarise(sst = mean(sst, na.rm=TRUE)) |>
+#' gbr_era5_sst_mean_annual_max_summarised <- gbr_era5_SST_mean_annual_max %>%
+#'   group_by(date) %>%
+#'   summarise(sst = mean(sst, na.rm=TRUE)) %>%
 #'   mutate(date=as.numeric(date))
 #'
 #'
@@ -104,9 +104,9 @@
 #' ### annual mean reef-average SST
 #' gbr_era5_SSTanom_mean_annual_max <- extract_reefs(gbr_era5_sstanom_annual_max, gbr_files, output="df", varname="sstanom", weights="area", fun="mean")
 #'
-#' gbr_era5_sstanom_mean_annual_max_summarised <- gbr_era5_SSTanom_mean_annual_max |>
-#'   group_by(date) |>
-#'   summarise(sstanom = mean(sstanom, na.rm=TRUE)) |>
+#' gbr_era5_sstanom_mean_annual_max_summarised <- gbr_era5_SSTanom_mean_annual_max %>%
+#'   group_by(date) %>%
+#'   summarise(sstanom = mean(sstanom, na.rm=TRUE)) %>%
 #'   mutate(date=as.numeric(date))
 #'
 #'
@@ -135,12 +135,12 @@ extract_reefs <- function(input, shpfile, output = "sf", fun = "mean", weights =
   )
 
   # Pivot longer with user-defined varname
-  output_file <- extracted_output |>
+  output_file <- extracted_output %>%
     tidyr::pivot_longer(
       cols = -c("LABEL_ID", "GBR_NAME"),
       names_to = "date",
       values_to = varname # Use custom variable name
-    ) |>
+    ) %>%
     dplyr::mutate(date = sub("^mean\\.", "", date)) # Clean date format
 
   # Handle output type (sf or data.frame)

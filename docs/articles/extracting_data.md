@@ -2,7 +2,9 @@
 
 ``` r
 library(dhw)
-#>  library(dhw) dev v1.3.0
+#> Warning: replacing previous import 'terra::quantile' by 'stats::quantile' when
+#> loading 'dhw'
+#>  library(dhw) dev v1.4.0
 library(sf)
 #> Linking to GEOS 3.13.0, GDAL 3.8.5, PROJ 9.5.1; sf_use_s2() is TRUE
 library(tidyverse)
@@ -17,7 +19,7 @@ library(tidyverse)
 #> ✖ dplyr::lag()    masks stats::lag()
 #> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
 library(terra)
-#> terra 1.8.86
+#> terra 1.8.93
 #> 
 #> Attaching package: 'terra'
 #> 

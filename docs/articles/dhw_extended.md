@@ -59,13 +59,6 @@ exmouth_OISST <- crop(ningaloo_OISST, vect(exmouth_pt))
 
 # get rNaturalEarth data
 aus <- rnaturalearth::ne_countries(country="Australia", scale=10) |> st_transform(crs(ningaloo_shp))
-#> ── R CMD build ─────────────────────────────────────────────────────────────────
-#> * checking for file ‘/private/var/folders/y9/9hk07gw12mj0hv3xvsfx4w400000gn/T/RtmpBfJEnM/remotes122465654f5c1/ropensci-rnaturalearthhires-e4736f6/DESCRIPTION’ ... OK
-#> * preparing ‘rnaturalearthhires’:
-#> * checking DESCRIPTION meta-information ... OK
-#> * checking for LF line-endings in source and make files and shell scripts
-#> * checking for empty or unneeded directories
-#> * building ‘rnaturalearthhires_1.0.0.9000.tar.gz’
 ningaloo_park <- st_difference(ningaloo_shp, aus)
 
 # map sites

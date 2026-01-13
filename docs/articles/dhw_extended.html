@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dhw</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,6 +50,7 @@
     <li><a class="dropdown-item" href="../articles/visualising_outputs.html">4. Visualising outputs from dhw</a></li>
     <li><a class="dropdown-item" href="../articles/dhw_extended.html">5. Extending the DHW metric</a></li>
     <li><a class="dropdown-item" href="../articles/hindcast.html">6. Hindcasting DHW records</a></li>
+    <li><a class="dropdown-item" href="../articles/hindcast.html">7. Bayesian changepoint detection and DHW</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -143,13 +144,6 @@ Gulf (Bundegi):</p>
 <span></span>
 <span><span class="co"># get rNaturalEarth data</span></span>
 <span><span class="va">aus</span> <span class="op">&lt;-</span> <span class="fu">rnaturalearth</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/rnaturalearth/reference/ne_countries.html" class="external-link">ne_countries</a></span><span class="op">(</span>country<span class="op">=</span><span class="st">"Australia"</span>, scale<span class="op">=</span><span class="fl">10</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_transform.html" class="external-link">st_transform</a></span><span class="op">(</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/crs.html" class="external-link">crs</a></span><span class="op">(</span><span class="va">ningaloo_shp</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="color: #00BBBB;">R CMD build</span> <span style="color: #00BBBB;">─────────────────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; * checking for file ‘/private/var/folders/y9/9hk07gw12mj0hv3xvsfx4w400000gn/T/RtmpBfJEnM/remotes122465654f5c1/ropensci-rnaturalearthhires-e4736f6/DESCRIPTION’ ... OK</span></span>
-<span><span class="co">#&gt; * preparing ‘rnaturalearthhires’:</span></span>
-<span><span class="co">#&gt; * checking DESCRIPTION meta-information ... OK</span></span>
-<span><span class="co">#&gt; * checking for LF line-endings in source and make files and shell scripts</span></span>
-<span><span class="co">#&gt; * checking for empty or unneeded directories</span></span>
-<span><span class="co">#&gt; * building ‘rnaturalearthhires_1.0.0.9000.tar.gz’</span></span>
 <span><span class="va">ningaloo_park</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/sf/reference/geos_binary_ops.html" class="external-link">st_difference</a></span><span class="op">(</span><span class="va">ningaloo_shp</span>, <span class="va">aus</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># map sites</span></span>

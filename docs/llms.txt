@@ -88,9 +88,9 @@ Skirving *et al* (2020) Remote Sensing 12(3856)
   : Calculate BAA
 - [`calculate_dhmi()`](https://marine-ecologist.github.io/dhw/reference/calculate_dhmi.md)
   : Calculate Degree Heating Month Index (DHMi)
-- [`hindcast_qm()`](https://marine-ecologist.github.io/dhw/reference/hindcast_qm.md)
+- [`hindcast()`](https://marine-ecologist.github.io/dhw/reference/hindcast.md)
   : Hindcast Bias-Corrected Raster Time Series via Monthly Anomaly
-  Quantile Mapping
+  Quantile Mapping (QM/QDM)
 
 ## Download data
 
@@ -163,3 +163,5 @@ Skirving *et al* (2020) Remote Sensing 12(3856)
   Weeks](https://marine-ecologist.github.io/dhw/articles/dhw_extended.md):
 - [Monthly-anomaly Quantile Mapping (QM) hindcast
   reconstructions](https://marine-ecologist.github.io/dhw/articles/hindcast.md):
+- [Bayesian changepoint detection and
+  OISST2](https://marine-ecologist.github.io/dhw/articles/changepoint.md):
