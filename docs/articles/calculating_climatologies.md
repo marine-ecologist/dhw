@@ -9,9 +9,21 @@ Lizard Island (145.4, -14.7):
 
 ``` r
   library(dhw)
+#>  library(dhw) dev v1.3.0
   library(terra)
+#> terra 1.8.86
   library(ggplot2)
   library(tidyverse)
+#> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+#> ✔ dplyr     1.1.4     ✔ readr     2.1.6
+#> ✔ forcats   1.0.1     ✔ stringr   1.6.0
+#> ✔ lubridate 1.9.4     ✔ tibble    3.3.1
+#> ✔ purrr     1.2.1     ✔ tidyr     1.3.2
+#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+#> ✖ tidyr::extract() masks terra::extract()
+#> ✖ dplyr::filter()  masks stats::filter()
+#> ✖ dplyr::lag()     masks stats::lag()
+#> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
 
   lizard_crw <- rast(system.file("extdata", "lizard_crw.tif", package="dhw"))
   
@@ -35,13 +47,13 @@ To create climatologies, use `create_climatology`:
   
   lizard_climatology <- create_climatology(lizard_crw)
 #> --- create_climatology ---
-#> 2.1e-06 secs  -  Processing Monthly Mean Climatology 
-#> 2.1 secs  -  Processing Daily Climatology 
-#> 2.3 secs  -  Processing SST Anomalies 
-#> 2.8 secs  -  Processing HotSpots (HS) 
-#> 3.1 secs  -  Processing Degree Heating Weeks (DHW) 
-#> 3.4 secs  -  Combining outputs 
-#> 3.4 secs  -  Writing files
+#> 2.9e-06 secs  -  Processing Monthly Mean Climatology 
+#> 2.3 secs  -  Processing Daily Climatology 
+#> 2.5 secs  -  Processing SST Anomalies 
+#> 3 secs  -  Processing HotSpots (HS) 
+#> 3.4 secs  -  Processing Degree Heating Weeks (DHW) 
+#> 3.7 secs  -  Combining outputs 
+#> 3.8 secs  -  Writing files
 ```
 
 which outputs a list of seven rasters, including sst (the original input

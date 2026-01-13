@@ -37,5 +37,5 @@ as_climatology_df <- function(input,
   if (rename_xy && xy) out <- dplyr::rename(out, lon = x, lat = y)
   if ("dhw" %in% names(out)) out <- dplyr::mutate(out, dhw = tidyr::replace_na(dhw, 0))
 
-  out |> mutate(year=year(time), month=month(time))
+  out %>% mutate(year=year(time), month=month(time))
 }

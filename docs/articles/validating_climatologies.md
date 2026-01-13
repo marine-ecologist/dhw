@@ -12,6 +12,8 @@ single pixel (Lizard Island) spanning 1:
 ``` r
 
 library(dhw)
+#> Warning: replacing previous import 'terra::quantile' by 'stats::quantile' when
+#> loading 'dhw'
 library(terra)
 
 lizard_OISST_raster <- system.file("extdata", "lizard_crw.tif", package = "dhw", mustWork = TRUE) |> rast()
@@ -66,13 +68,13 @@ lizard_crw_climatology_raster <- system.file("extdata", "lizard_crw_climatology.
 # extract Monthly Mean Climatology
 test_SST <- create_climatology(lizard_crw_raster)
 #> --- create_climatology ---
-#> 2.9e-06 secs  -  Processing Monthly Mean Climatology 
-#> 0.24 secs  -  Processing Daily Climatology 
-#> 0.41 secs  -  Processing SST Anomalies 
-#> 0.51 secs  -  Processing HotSpots (HS) 
-#> 0.66 secs  -  Processing Degree Heating Weeks (DHW) 
-#> 0.95 secs  -  Combining outputs 
-#> 0.97 secs  -  Writing files
+#> 3.1e-06 secs  -  Processing Monthly Mean Climatology 
+#> 0.26 secs  -  Processing Daily Climatology 
+#> 0.45 secs  -  Processing SST Anomalies 
+#> 0.56 secs  -  Processing HotSpots (HS) 
+#> 0.71 secs  -  Processing Degree Heating Weeks (DHW) 
+#> 1 secs  -  Combining outputs 
+#> 1.1 secs  -  Writing files
 test_SST_vals <- terra::values(test_SST$mm) |> as.numeric() |> round(2)
 
 # check CRW Monthly Mean Climatology
@@ -208,6 +210,11 @@ daily_climatology_plot <- ggplot() + theme_bw() +
   ylab("SST")
 
 library(patchwork)
+#> 
+#> Attaching package: 'patchwork'
+#> The following object is masked from 'package:terra':
+#> 
+#>     area
 
 daily_anomalies_plot <- ggplot() + theme_bw() + 
   geom_line(data=calculated_anomalies_df, aes(time, calculated_SSTA, color=calculated_SSTA), show.legend=FALSE) +

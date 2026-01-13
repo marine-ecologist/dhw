@@ -80,7 +80,7 @@ reference:
   - calculate_dhw
   - calculate_baa
   - calculate_dhmi
-  - hindcast_qm
+  - hindcast
 - title: Download data
   contents:
   - download_CoralTemp

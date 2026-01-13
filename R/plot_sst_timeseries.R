@@ -40,15 +40,15 @@ plot_sst_timeseries <- function(input, targetyear) {
   )
 
   # derive year/month/day from time (robust even if not present)
-  input_df <- input_df |>
-    dplyr::ungroup() |>
+  input_df <- input_df %>%
+    dplyr::ungroup() %>%
     dplyr::mutate(
       year  = lubridate::year(.data$time),
       month = lubridate::month(.data$time),
       day   = lubridate::day(.data$time)
     )
 
-  input_df_target <- input_df |>
+  input_df_target <- input_df %>%
     dplyr::filter(.data$year %in% c(targetyear, targetyear - 1))
 
   # ---- get MMM value (scalar) ----
@@ -59,7 +59,7 @@ plot_sst_timeseries <- function(input, targetyear) {
   }
 
   # ---- prepare plotting df with alert levels & fill areas ----
-  plot_df <- input_df |>
+  plot_df <- input_df %>%
     dplyr::mutate(
       mmm_line   = mmm_val,
       dashed_line = mmm_val + 1,
@@ -81,8 +81,8 @@ plot_sst_timeseries <- function(input, targetyear) {
       ),
       fill_area = ifelse(.data$sst > .data$dashed_line, .data$sst, .data$dashed_line),
       mmm_area  = ifelse(.data$sst < .data$mmm_line,    .data$mmm_line, .data$sst)
-    ) |>
-    dplyr::filter(.data$year %in% c(targetyear, targetyear - 1)) |>
+    ) %>%
+    dplyr::filter(.data$year %in% c(targetyear, targetyear - 1)) %>%
     dplyr::filter(.data$time >= start_target_date, .data$time <= end_target_date)
 
   # y-band for the bottom status strip
