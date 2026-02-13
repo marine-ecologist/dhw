@@ -1,0 +1,404 @@
+---
+title: "Automated Daily DHW Pipeline"
+subtitle: "Google Earth Engine → Google Cloud Storage via Cloud Functions"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calculating Degree Heating Weeks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+This document describes an automated pipeline that computes daily coral
+bleaching heat stress products for the Great Barrier Reef and exports them to
+Google Cloud Storage (GCS) as Cloud Optimized GeoTIFFs (COGs), with summary
+statistics logged to BigQuery.
+
+The pipeline implements the same methodology as the interactive GEE scripts
+(see companion document), following @skirving2020, but runs unattended on a
+daily schedule via Google Cloud infrastructure.
+
+### Architecture
+
+```{mermaid}
+%%| label: fig-architecture
+%%| fig-cap: "Pipeline architecture: Cloud Scheduler triggers a Cloud Function daily."
+flowchart TD
+    SCHED[Cloud Scheduler<br/>Daily 12:00 UTC] -->|Pub/Sub| CF[Cloud Function<br/>pipeline/main.py]
+    CF -->|ee.batch.Export| GCS[(GCS Bucket<br/>COGs)]
+    CF -->|reduceRegion + getInfo| BQ[(BigQuery<br/>daily_summary)]
+    CF -->|reads| ASSETS[(EE Assets<br/>MM, MMM, DC)]
+    CF -->|reads| OISST[(NOAA OISST<br/>Daily SST)]
+
+    subgraph "Pre-computed once"
+        ASSETS
+    end
+
+    subgraph "Updated daily"
+        OISST
+    end
+
+    subgraph "Outputs"
+        GCS
+        BQ
+    end
+```
+
+
+## Pipeline Components
+
+The pipeline consists of four Python scripts and one shell deployment script.
+**No credentials, project IDs, or login details are stored in any script** —
+all configuration is read from environment variables at runtime.
+
+| File | Purpose | Runs |
+|------|---------|------|
+| `precompute_climatology.py` | Export MM, MMM, DC as EE assets | Once |
+| `pipeline/main.py` | Cloud Function: daily SST, anomaly, DHW | Daily (automated) |
+| `pipeline/requirements.txt` | Python dependencies for the function | — |
+| `backfill.py` | Process historical date ranges locally | On demand |
+| `deploy.sh` | Create all GCP resources and deploy | Once |
+
+: Pipeline files and their roles. {#tbl-files}
+
+### Environment Variables
+
+All scripts read configuration from environment variables. No defaults contain
+real project IDs or bucket names.
+
+| Variable | Used by | Description |
+|----------|---------|-------------|
+| `GEE_PROJECT` | All | Google Cloud project ID registered with Earth Engine |
+| `GCS_BUCKET` | `main.py`, `backfill.py`, `deploy.sh` | GCS bucket name for COG exports |
+| `BQ_TABLE` | `main.py` | BigQuery table (auto-set by `deploy.sh`) |
+
+: Environment variables used by the pipeline. {#tbl-envvars}
+
+
+## Pre-computed Climatology
+
+The MM, MMM, and 366-day daily climatology are static products derived from the
+1985–2012 OISST record. They are computed once by `precompute_climatology.py`
+and exported as Earth Engine assets.
+
+```bash
+export GEE_PROJECT="<your-project-id>"
+python precompute_climatology.py
+```
+
+This creates three assets:
+
+| Asset | Bands | Description |
+|-------|-------|-------------|
+| `coral_dhw/mm_climatology` | 12 | Monthly mean SST (mm_01 … mm_12) |
+| `coral_dhw/mmm_climatology` | 1 | Maximum monthly mean SST |
+| `coral_dhw/daily_climatology` | 366 | Interpolated daily SST (dc_001 … dc_366) |
+
+: Pre-computed Earth Engine assets. {#tbl-assets}
+
+The script polls the EE task queue and reports completion. Typical runtime is
+5–15 minutes.
+
+### Why Pre-compute?
+
+Loading climatology from assets is effectively instantaneous. Without
+pre-computation, each daily run would re-derive the climatology from 28 years of
+data — processing 12 × 28 = 336 monthly means and performing 12 regressions —
+adding several minutes and significant computation to every invocation.
+
+
+## Cloud Function: Daily Processing
+
+**File:** `pipeline/main.py`
+
+### Trigger
+
+The function is triggered by a Pub/Sub message sent by Cloud Scheduler at
+12:00 UTC daily. NOAA OISST data typically becomes available by ~09:00 UTC for
+the previous day, so the function processes **yesterday's date** by default.
+
+If data is not yet available, the function falls back to the day before.
+
+### Products Computed
+
+For each day, three gridded products are computed and exported:
+
+#### 1. Raw SST
+
+The observed OISST sea surface temperature, scaled from raw integer values to
+°C and clipped to the ROI:
+
+$$\text{SST} = \text{OISST}_{\text{raw}} \times 0.01$$
+
+#### 2. SST Anomaly
+
+$$\text{SST Anomaly}_i = \text{SST}_i - \text{DC}_d$$
+
+where $d$ is the day-of-year of date $i$, and $\text{DC}_d$ is the
+corresponding band from the pre-computed daily climatology asset.
+
+#### 3. Degree Heating Weeks
+
+$$\text{DHW}_i = \sum_{n=i-83}^{i} \frac{\text{HS}_n}{7},
+\quad \text{where } \text{HS}_n \geq 1\,°\text{C}$$
+
+The function loads 84 days of OISST data, computes the HotSpot for each day
+($\text{HS} = \max(\text{SST} - \text{MMM}, 0)$), thresholds at 1°C, sums,
+and divides by 7.
+
+### Export to GCS
+
+Each product is exported as a **Cloud Optimized GeoTIFF** via
+`ee.batch.Export.image.toCloudStorage()` with `cloudOptimized: True`.
+
+These exports are **asynchronous** — the Cloud Function starts the EE export
+tasks (~2 seconds) and returns. GEE's servers then perform the actual
+computation and write the files to GCS (typically 1–5 minutes).
+
+GCS file structure:
+
+```
+gs://<bucket>/
+  sst/
+    2024/
+      20240101.tif
+      20240102.tif
+      ...
+  sst_anomaly/
+    2024/
+      20240101.tif
+      ...
+  dhw/
+    2024/
+      20240101.tif
+      ...
+  annual_max_dhw/
+    2024/
+      20241231.tif
+```
+
+### Summary Statistics to BigQuery
+
+The function also computes GBR-wide spatial statistics **synchronously** via
+`ee.Image.reduceRegion()` and inserts a single row into BigQuery (~10 seconds).
+
+For each product $X \in \{\text{SST}, \text{Anomaly}, \text{DHW}\}$:
+
+- **Spatial mean**: $\bar{X} = \frac{1}{n}\sum_{p=1}^{n} X_p$
+- **Standard deviation**: $s_X$
+- **95% confidence interval on the spatial mean**:
+  $\bar{X} \pm 1.96 \cdot \frac{s_X}{\sqrt{n}}$
+- **Pixel count**: $n$
+
+#### BigQuery Table Schema
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `date` | DATE | Observation date |
+| `sst_mean` | FLOAT | GBR spatial mean SST (°C) |
+| `sst_std` | FLOAT | Spatial standard deviation |
+| `sst_ci95_lower` | FLOAT | Lower bound of 95% CI |
+| `sst_ci95_upper` | FLOAT | Upper bound of 95% CI |
+| `sst_n_pixels` | INTEGER | Number of valid pixels |
+| `anomaly_mean` | FLOAT | GBR spatial mean anomaly (°C) |
+| `anomaly_std` | FLOAT | Spatial standard deviation |
+| `anomaly_ci95_lower` | FLOAT | Lower bound of 95% CI |
+| `anomaly_ci95_upper` | FLOAT | Upper bound of 95% CI |
+| `anomaly_n_pixels` | INTEGER | Number of valid pixels |
+| `dhw_mean` | FLOAT | GBR spatial mean DHW (°C-weeks) |
+| `dhw_std` | FLOAT | Spatial standard deviation |
+| `dhw_ci95_lower` | FLOAT | Lower bound of 95% CI |
+| `dhw_ci95_upper` | FLOAT | Upper bound of 95% CI |
+| `dhw_n_pixels` | INTEGER | Number of valid pixels |
+
+: BigQuery `daily_summary` table schema. {#tbl-schema}
+
+
+### Function Execution Timeline
+
+```{mermaid}
+%%| label: fig-timeline
+%%| fig-cap: "Execution timeline for a single daily run."
+gantt
+    title Daily Pipeline Execution
+    dateFormat  ss
+    axisFormat  %S s
+
+    section Cloud Function
+    Init EE + load assets     :a1, 00, 3s
+    Compute SST + Anomaly     :a2, after a1, 2s
+    Compute DHW (84-day)      :a3, after a2, 3s
+    Start 3 export tasks      :a4, after a3, 2s
+    Compute + save summary    :a5, after a4, 10s
+    Function returns          :milestone, after a5, 0s
+
+    section GEE Backend (async)
+    Export SST COG            :b1, after a4, 120s
+    Export Anomaly COG        :b2, after a4, 120s
+    Export DHW COG            :b3, after a4, 180s
+```
+
+
+## Backfill: Historical Processing
+
+**File:** `backfill.py`
+
+The backfill script processes a range of historical dates, submitting export
+tasks to GEE in bulk:
+
+```bash
+python backfill.py --start 2024-01-01 --end 2024-12-31 --dest gcs
+```
+
+It also supports computing the annual maximum DHW (per-pixel):
+
+```bash
+python backfill.py --annual-max 2024 --dest gcs
+```
+
+### Rate Limiting
+
+GEE allows up to ~3,000 concurrent queued export tasks. The backfill script
+pauses briefly every 50 dates to avoid hitting API rate limits. A full year
+(365 days × 3 products = 1,095 tasks) completes in a few minutes of task
+submission, with GEE processing the exports over 1–2 hours.
+
+
+## Deployment
+
+**File:** `deploy.sh`
+
+The deployment script creates all required GCP resources:
+
+1. **Enables APIs** — Earth Engine, Cloud Functions, Cloud Scheduler, Pub/Sub,
+   BigQuery, Cloud Storage, Cloud Build, Cloud Run
+2. **Creates a service account** with roles:
+   - `roles/earthengine.admin`
+   - `roles/storage.objectAdmin`
+   - `roles/bigquery.dataEditor`
+   - `roles/bigquery.jobUser`
+3. **Creates the GCS bucket** in `australia-southeast1`
+4. **Creates the BigQuery dataset and table**
+5. **Creates a Pub/Sub topic** for the scheduler trigger
+6. **Deploys the Cloud Function** (gen2, Python 3.11, 512 MB, 300s timeout)
+7. **Creates the Cloud Scheduler job** (daily at 12:00 UTC)
+
+```bash
+export GEE_PROJECT="<your-project-id>"
+export GCS_BUCKET="<your-bucket-name>"
+chmod +x deploy.sh
+./deploy.sh
+```
+
+### Prerequisites
+
+- Google Cloud project with billing enabled
+- `gcloud` CLI installed and authenticated
+- Earth Engine API enabled for the project
+- Service account registered with Earth Engine
+
+
+## Cost Estimate
+
+### Data Volume
+
+The GBR ROI at 0.25° resolution contains approximately:
+
+$$\frac{12.1°}{0.25°} \times \frac{15.8°}{0.25°} \approx 48 \times 63
+= 3{,}024 \text{ pixels}$$
+
+A single-band float32 COG with 3,024 pixels is approximately **15 KB**.
+
+| Item | Calculation | Annual total |
+|------|-------------|-------------|
+| Daily COGs | 3 products × 15 KB × 365 days | ~16 MB |
+| BigQuery rows | 365 rows × ~0.5 KB | ~180 KB |
+| Annual max DHW | 1 COG | ~15 KB |
+
+: Annual data volume for the GBR ROI. {#tbl-volume}
+
+### Monthly Cost
+
+| Service | Free tier | Pipeline usage | Cost |
+|---------|-----------|---------------|------|
+| GCS storage | 5 GB | ~16 MB/year | $0 |
+| GCS operations | 5,000 Class A/month | ~90 writes/month | $0 |
+| BigQuery storage | 10 GB | ~180 KB/year | $0 |
+| BigQuery queries | 1 TB/month | Minimal | $0 |
+| Cloud Functions | 2M invocations/month | 30 runs | $0 |
+| Cloud Scheduler | 3 free jobs | 1 job | $0 |
+| Pub/Sub | 10 GB/month | ~30 KB/month | $0 |
+| Earth Engine | Free (non-commercial) | 30 computations/month | $0 |
+| **Total** | | | **$0/month** |
+
+: Estimated monthly costs (all within free tiers). {#tbl-cost}
+
+
+## Serving Outputs
+
+The COGs stored in GCS can be consumed by mapping applications:
+
+### Cesium / Web Maps
+
+Use a tile server such as [TiTiler](https://developmentseed.org/titiler/) to
+serve XYZ tiles from the COGs:
+
+```python
+# Example TiTiler URL
+GET /cog/tiles/{z}/{x}/{y}?url=gs://bucket/dhw/2024/20240315.tif
+```
+
+### GEE Tile API
+
+For live-computed layers (e.g., current DHW), use `ee.data.getMapId()` to
+generate tile URLs that can be fed to `Cesium.UrlTemplateImageryProvider`.
+
+### Direct Access
+
+COGs in GCS support HTTP range requests, so desktop GIS applications (QGIS,
+ArcGIS) can open them directly via the `gs://` or `https://storage.googleapis.com/`
+URL without downloading the entire file.
+
+
+## Monitoring
+
+### Check Pipeline Status
+
+```bash
+# Recent logs
+gcloud functions logs read daily-dhw-pipeline \
+  --region=australia-southeast1 --limit=20
+
+# Exported files
+gsutil ls gs://<bucket>/dhw/2024/
+
+# Latest BigQuery entry
+bq query --nouse_legacy_sql \
+  "SELECT * FROM coral_dhw.daily_summary ORDER BY date DESC LIMIT 1"
+```
+
+### Sample BigQuery Queries
+
+**Annual maximum DHW (GBR-wide average):**
+
+```sql
+SELECT
+  EXTRACT(YEAR FROM date) AS year,
+  MAX(dhw_mean) AS max_dhw,
+  MAX(dhw_ci95_upper) AS max_dhw_upper
+FROM `<project>.coral_dhw.daily_summary`
+GROUP BY year ORDER BY year;
+```
+
+**Days above bleaching thresholds per year:**
+
+```sql
+SELECT
+  EXTRACT(YEAR FROM date) AS year,
+  COUNTIF(dhw_mean >= 4) AS days_warning,
+  COUNTIF(dhw_mean >= 8) AS days_alert2
+FROM `<project>.coral_dhw.daily_summary`
+GROUP BY year ORDER BY year;
+```
+

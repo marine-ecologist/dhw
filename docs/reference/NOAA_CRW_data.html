@@ -22,16 +22,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/calculating_climatologies.html">1. Calculating Degree Heating Weeks</a></li>
-    <li><a class="dropdown-item" href="../articles/validating_climatologies.html">2. Reproducible Code &amp; validating DHW climatologies</a></li>
-    <li><a class="dropdown-item" href="../articles/extracting_data.html">3. Downloading SST and spatial data</a></li>
-    <li><a class="dropdown-item" href="../articles/visualising_outputs.html">4. Visualising outputs from dhw</a></li>
-    <li><a class="dropdown-item" href="../articles/dhw_extended.html">5. Extending the DHW metric</a></li>
-    <li><a class="dropdown-item" href="../articles/hindcast.html">6. Hindcasting DHW records</a></li>
-    <li><a class="dropdown-item" href="../articles/hindcast.html">7. Bayesian changepoint detection and DHW</a></li>
-  </ul></li>
+<li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -90,8 +81,41 @@ fmt = "nc"
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">NOAA_CRW_data</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">NOAA_CRW_data</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">NOAA_CRW_data</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">NOAA_CRW_data</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    longitude        latitude          time              CRW_BAA      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :145.4   Min.   :-14.68   Length:732         Min.   :0.0000  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.:145.4   1st Qu.:-14.68   Class :character   1st Qu.:0.0000  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :145.4   Median :-14.68   Mode  :character   Median :0.0000  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :145.4   Mean   :-14.68                      Mean   :0.4795  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:145.4   3rd Qu.:-14.68                      3rd Qu.:1.0000  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :145.4   Max.   :-14.68                      Max.   :4.0000  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  CRW_BAA_7D_MAX   CRW_BAA_7D_MAX_mask  CRW_BAA_mask    CRW_DHW     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :0.0000   Min.   :0           Min.   :0     Min.   :0.000  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.:0.0000   1st Qu.:0           1st Qu.:0     1st Qu.:0.000  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :0.0000   Median :0           Median :0     Median :0.000  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :0.6257   Mean   :0           Mean   :0     Mean   :1.947  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:1.0000   3rd Qu.:0           3rd Qu.:0     3rd Qu.:3.950  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :4.0000   Max.   :0           Max.   :0     Max.   :8.990  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   CRW_DHW_mask  CRW_HOTSPOT      CRW_HOTSPOT_mask   CRW_SEAICE     CRW_SST     </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :0     Min.   :-5.2900   Min.   :0        Min.   : NA   Min.   :23.30  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.:0     1st Qu.:-3.1100   1st Qu.:0        1st Qu.: NA   1st Qu.:25.48  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Median :0     Median :-1.4300   Median :0        Median : NA   Median :27.16  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   :0     Mean   :-1.4099   Mean   :0        Mean   :NaN   Mean   :27.18  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.:0     3rd Qu.: 0.2625   3rd Qu.:0        3rd Qu.: NA   3rd Qu.:28.85  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   :0     Max.   : 2.0600   Max.   :0        Max.   : NA   Max.   :30.65  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                                   NA's   :732                  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  CRW_SSTANOMALY    CRW_SSTANOMALY_mask</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Min.   :-0.9800   Min.   :0          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1st Qu.: 0.4100   1st Qu.:0          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Median : 0.8500   Median :0          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Mean   : 0.9107   Mean   :0          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3rd Qu.: 1.4700   3rd Qu.:0          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Max.   : 2.7700   Max.   :0          </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                                       </span>
+</code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

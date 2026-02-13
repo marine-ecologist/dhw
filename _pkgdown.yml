@@ -21,7 +21,8 @@ navbar:
     left:
       - intro
       - reference
-      - articles
+      - R
+      - GEE
       - tutorials
       - news
     right:
@@ -52,8 +53,8 @@ navbar:
           theme: auto
           icon: fa-adjust
 
-    articles:
-      text: Articles
+    R:
+      text: R
       menu:
         - text: "1. Calculating Degree Heating Weeks"
           href: articles/calculating_climatologies.html
@@ -69,6 +70,13 @@ navbar:
           href: articles/hindcast.html
         - text: "7. Bayesian changepoint detection and DHW"
           href: articles/changepoint.html
+    GEE:
+      text: GEE
+      menu:
+        - text: "1. Calculating DHW in Google Earth Engine"
+          href: articles/gee_scripts.html
+        - text: "2. Google Earth Engine pipeline for OISST"
+          href: articles/gee_pipeline.html
 
 reference:
 - title: Climatologies and SST Metrics
@@ -124,3 +132,5 @@ articles:
   - dhw_extended
   - hindcast
   - changepoint
+  - gee_scripts
+  - gee_pipeline

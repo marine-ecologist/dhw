@@ -1,0 +1,306 @@
+---
+title: "Coral Reef Watch Heat Stress Products in Google Earth Engine"
+subtitle: "Implementation of Skirving et al. (2020) using NOAA OISST"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calculating Degree Heating Weeks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+This document describes five Google Earth Engine (GEE) JavaScript scripts that
+implement the Coral Reef Watch (CRW) heat stress product suite following the
+methodology of @skirving2020. The scripts compute, for each grid cell within a
+defined region of interest:
+
+1. **Monthly Mean (MM) Climatology** — 12 regression-adjusted SST values
+2. **Maximum Monthly Mean (MMM) Climatology** — the annual thermal maximum
+3. **Daily Climatology (DC)** — 366-day interpolated baseline
+4. **SST Anomaly** — departure from the daily climatological mean
+5. **Coral Bleaching HotSpot (HS)** — instantaneous stress above MMM
+6. **Degree Heating Weeks (DHW)** — accumulated thermal stress over 12 weeks
+
+All scripts use the **NOAA CDR OISST v02r01** dataset (`NOAA/CDR/OISST/V2_1`)
+at 0.25° spatial resolution, available in the GEE public data catalogue.
+
+### Region of Interest
+
+The region of interest covers the Great Barrier Reef:
+
+```
+xmin: 141.0958  ymin: -24.70584
+xmax: 153.2032  ymax:  -8.926405
+```
+
+Defined in each script as:
+
+```javascript
+var ROI = ee.Geometry.Rectangle([141.0958, -24.70584, 153.2032, -8.926405]);
+```
+
+All output images are clipped to this ROI via `.clip(ROI)` to restrict
+computation and display.
+
+### Important Note on OISST Resolution
+
+The operational CRW products use **CoralTemp** at 0.05° (~5 km) resolution,
+blending geostationary and polar-orbiting satellite SST. This implementation
+uses **OISST at 0.25° (~25 km)**, which is the highest-resolution daily SST
+product available in GEE. Results will differ from official CRW products in
+absolute values but follow the identical methodology.
+
+| Feature        | CRW v3.1         | This Implementation |
+|----------------|------------------|---------------------|
+| SST source     | CoralTemp (5 km) | NOAA OISST (25 km)  |
+| Resolution     | 0.05°            | 0.25°               |
+| Gap filling    | Multi-sensor blend | OI interpolation  |
+| Platform       | Custom pipeline  | Google Earth Engine  |
+
+: Comparison of operational CRW products with this GEE implementation. {#tbl-comparison}
+
+
+## Script 01: Monthly Mean and Maximum Monthly Mean Climatology
+
+**File:** `01_mm_mmm_climatology.js`
+
+### Method
+
+The Monthly Mean (MM) climatology is a set of 12 SST values representing the
+regression-adjusted average SST for each calendar month, computed over the period
+1985–2012.
+
+For each month $m \in \{1, 2, \ldots, 12\}$:
+
+1. Compute the monthly mean SST for each year $y \in \{1985, \ldots, 2012\}$,
+   yielding 28 values.
+2. Apply ordinary least squares (OLS) linear regression:
+   $$\overline{\text{SST}}_{m,y} = \beta_0 + \beta_1 \cdot y + \varepsilon$$
+3. Evaluate the regression at the target year $y^* = 1988.2857$:
+   $$\text{MM}_m = \hat{\beta}_0 + \hat{\beta}_1 \cdot 1988.2857$$
+
+The target year 1988.2857 is the mean of the years used in the original CRW
+climatology (1985–1990 and 1993), chosen to maintain consistency across product
+versions.
+
+The **Maximum Monthly Mean** is then:
+
+$$\text{MMM} = \max_{m=1}^{12} \text{MM}_m$$
+
+The MMM represents the warmest monthly climatological temperature at each pixel
+and serves as the threshold above which thermal stress is defined.
+
+### Memory Optimisation
+
+OISST images are global single-tile rasters. A naive nested mapping over 28
+years × 12 months creates a 336-image collection that exceeds GEE's user memory
+limit. The script avoids this by processing each month independently in a
+client-side loop:
+
+```javascript
+function computeMMForMonth(month) {
+  // Loads only 28 images (one per year for this month)
+  // Runs regression and returns a single image
+}
+
+var mmImages = [];
+for (var m = 1; m <= 12; m++) {
+  mmImages.push(computeMMForMonth(m).rename('mm_' + ...));
+}
+```
+
+This ensures GEE never holds more than 28 images in memory simultaneously.
+
+### Outputs
+
+- `mmMultiBand`: 12-band image (`mm_01` to `mm_12`), one per calendar month
+- `mmm`: single-band image, the per-pixel maximum of the 12 MM values
+
+Both are exported as EE assets and GeoTIFFs for reuse in subsequent scripts.
+
+
+## Script 02: Daily Climatology
+
+**File:** `02_daily_climatology.js`
+
+### Method
+
+The 12 MM values are interpolated to produce a daily climatology (DC) of 366
+values (one per day of year, including leap day). Each MM value is assigned to
+the 15th of its corresponding month:
+
+| Month | Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Nov | Dec |
+|-------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| Anchor DOY | 15 | 46 | 74 | 105 | 135 | 166 | 196 | 227 | 258 | 288 | 319 | 349 |
+
+: Day-of-year anchor points for the 15th of each month (non-leap year). {#tbl-anchors}
+
+For any day-of-year $d$ falling between anchor points $d_{\text{lo}}$ (month
+$m_{\text{lo}}$) and $d_{\text{hi}}$ (month $m_{\text{hi}}$):
+
+$$\text{DC}_d = \text{MM}_{m_{\text{lo}}} +
+\left(\text{MM}_{m_{\text{hi}}} - \text{MM}_{m_{\text{lo}}}\right)
+\cdot \frac{d - d_{\text{lo}}}{d_{\text{hi}} - d_{\text{lo}}}$$
+
+The interpolation wraps around from December (DOY 349) to January (DOY 15) by
+introducing virtual anchor points at DOY −16 (December of the "previous year")
+and DOY 380 (January of the "next year").
+
+### Output
+
+- `dcImage`: 366-band image (`dc_001` to `dc_366`), each band being the
+  interpolated SST climatology for that day of year.
+
+
+## Script 03: SST Anomaly
+
+**File:** `03_sst_anomaly.js`
+
+### Method
+
+The daily SST Anomaly is the departure of the observed SST from the daily
+climatological mean:
+
+$$\text{SST Anomaly}_i = \text{SST}_i - \text{DC}_d$$
+
+where $i$ is the observation date and $d$ is the corresponding day of year.
+
+The script uses server-side array indexing to select the correct DC band for
+each image's day of year:
+
+```javascript
+var dcArray = dcAllBands.toArray();  // 366-element array image
+
+var sstAnomalyCollection = oisstAnalysis.map(function(img) {
+  var doy = ee.Date(img.get('system:time_start'))
+    .getRelative('day', 'year').add(1).min(366);
+  var dcForDay = dcArray
+    .arraySlice(0, doy.subtract(1), doy)
+    .arrayProject([0])
+    .arrayFlatten([['dc_sst']]);
+  return img.subtract(dcForDay).rename('sst_anomaly');
+});
+```
+
+### Output
+
+- `sstAnomalyCollection`: daily SST anomaly images for the analysis period.
+  Positive values indicate warmer-than-average conditions; negative values
+  indicate cooler-than-average conditions.
+
+
+## Script 04: Coral Bleaching HotSpot
+
+**File:** `04_hotspot.js`
+
+### Method
+
+The Coral Bleaching HotSpot (HS) measures the instantaneous thermal stress
+above the climatological maximum:
+
+$$\text{HS}_i = \max(\text{SST}_i - \text{MMM},\; 0)$$
+
+The HotSpot is always zero or positive. When the observed SST is below the MMM,
+the HotSpot is set to zero — there is no negative thermal stress in this
+framework.
+
+The MMM is a static field (one value per pixel), whereas the HotSpot varies
+daily with the observed SST.
+
+### Interpretation
+
+| HotSpot (°C) | Interpretation |
+|---------------|----------------|
+| 0             | No thermal stress |
+| 0 – 1        | Below bleaching watch threshold |
+| ≥ 1           | Significant thermal stress; contributes to DHW |
+
+: HotSpot interpretation thresholds. {#tbl-hotspot}
+
+### Output
+
+- `hotspotCollection`: daily HotSpot images (°C above MMM).
+
+
+## Script 05: Degree Heating Weeks
+
+**File:** `05_dhw.js`
+
+### Method
+
+The Degree Heating Week (DHW) product accumulates thermal stress over a rolling
+12-week (84-day) window. Only HotSpot values ≥ 1°C contribute to the
+summation. Daily values are divided by 7 to convert from degree-days to
+degree-weeks:
+
+$$\text{DHW}_i = \sum_{n=i-83}^{i} \frac{\text{HS}_n}{7},
+\quad \text{where } \text{HS}_n \geq 1\,°\text{C}$$
+
+### Worked Example
+
+If the 84-day window ending on 1 June 2024 contained only four daily HotSpot
+values above zero — 1.0, 2.0, 0.8, and 1.2°C — then:
+
+- 0.8°C is excluded (below the 1°C threshold)
+- Contributing values: 1.0, 2.0, 1.2°C
+- $\text{DHW} = (1.0 + 2.0 + 1.2) / 7 = 0.6\,°\text{C-weeks}$
+
+### Bleaching Thresholds
+
+| DHW (°C-weeks) | Alert Level | Expected Impact |
+|----------------|-------------|-----------------|
+| 0              | No stress   | — |
+| 0 – 4          | Watch       | Possible bleaching |
+| 4 – 8          | Warning     | Significant bleaching likely |
+| ≥ 8            | Alert Level 2 | Severe bleaching and mortality likely |
+
+: DHW bleaching thresholds following @liu2014. {#tbl-bleaching}
+
+### Computational Considerations
+
+Computing DHW for every day of a year-long analysis period creates 365 derived
+images, each requiring the summation of an 84-image window. For long periods or
+large regions, consider:
+
+- Processing in monthly batches
+- Exporting the daily HotSpot collection first, then computing DHW offline
+- Using the automated pipeline (see companion document)
+
+### Output
+
+- `dhwCollection`: daily DHW images (°C-weeks) for the analysis period.
+
+
+## Data Flow Summary
+
+```{mermaid}
+%%| label: fig-dataflow
+%%| fig-cap: "Data flow from raw OISST to DHW products."
+flowchart LR
+    OISST[NOAA OISST<br/>Daily SST] --> MM[Monthly Mean<br/>12 values]
+    MM --> MMM[Maximum<br/>Monthly Mean]
+    MM --> DC[Daily Climatology<br/>366 values]
+    OISST --> ANOM[SST Anomaly<br/>SST − DC]
+    DC --> ANOM
+    OISST --> HS[HotSpot<br/>max SST−MMM, 0]
+    MMM --> HS
+    HS --> DHW[Degree Heating Weeks<br/>84-day Σ HS/7, HS≥1]
+```
+
+
+## Running the Scripts
+
+1. Open the [GEE Code Editor](https://code.earthengine.google.com/)
+2. Paste `01_mm_mmm_climatology.js` → Run → Execute export tasks in the Tasks tab
+3. Update asset paths in scripts 02–05 to point to your exported MM/MMM assets
+4. Run scripts 02–05 in sequence
+
+For the asset path, replace the placeholder:
+
+```javascript
+// var mmm = ee.Image('projects/YOUR-GEE-PROJECT/assets/coral_dhw/mmm_climatology');
+```
+
+with your actual asset path after exporting from Script 01.
+
