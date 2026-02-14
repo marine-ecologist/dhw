@@ -19,13 +19,17 @@ var CLIM_START = 1985;
 var CLIM_END   = 2012;  // inclusive
 var TARGET_YEAR = 1988.2857;
 
-// Region of interest: Great Barrier Reef
-var ROI = ee.Geometry.Rectangle([141.0958, -24.70584, 153.2032, -8.926405]);
+// ── Masking: binary raster (1 = ocean/GBR, 0 = land/outside) ─────────────────
+var MASK = ee.Image('projects/oisst-dhw/assets/coral_dhw/gbr_mask').selfMask();
+var BBOX = ee.Geometry.Rectangle([141, -24.75, 153, -8.75]);
+
+// Grid matching R gbr_mask raster: 64 rows × 48 cols, 0.25°
+// extent: xmin=141, xmax=153, ymin=-24.75, ymax=-8.75
+var EXPORT_CRS = 'EPSG:4326';
+var EXPORT_CRS_TRANSFORM = [0.25, 0, 141, 0, -0.25, -8.75];
+var EXPORT_BOUNDS = BBOX;
 
 // ── Helper: compute MM for a single month ──────────────────────────────────────
-// Loads OISST fresh per call so GEE can garbage-collect between months.
-// Produces only 28 images (one per year), runs regression, returns one image.
-
 function computeMMForMonth(month) {
   month = ee.Number(month);
   var years = ee.List.sequence(CLIM_START, CLIM_END);
@@ -39,9 +43,9 @@ function computeMMForMonth(month) {
     var meanSST = ee.ImageCollection('NOAA/CDR/OISST/V2_1')
       .select('sst')
       .filterDate(t1, t2)
-      .filterBounds(ROI)
+      .filterBounds(BBOX)
       .mean()
-      .multiply(0.01);  // raw units are °C × 100
+      .multiply(0.01);
 
     return meanSST
       .addBands(ee.Image.constant(1).rename('constant').toFloat())
@@ -75,8 +79,8 @@ for (var m = 1; m <= 12; m++) {
   mmImages.push(computeMMForMonth(m).rename('mm_' + (m < 10 ? '0' + m : m)));
 }
 
-// 12-band image, clipped to ROI
-var mmMultiBand = ee.Image.cat(mmImages).clip(ROI);
+// 12-band image, masked to GBR ocean pixels
+var mmMultiBand = ee.Image.cat(mmImages).updateMask(MASK);
 print('MM Climatology (12 bands):', mmMultiBand);
 
 // ── Maximum Monthly Mean (MMM) ─────────────────────────────────────────────────
@@ -95,7 +99,7 @@ var sstVis = {
   min: 20, max: 32,
   palette: ['0000ff','00ffff','00ff00','ffff00','ff8800','ff0000']
 };
-Map.centerObject(ROI, 5);
+Map.centerObject(BBOX, 5);
 Map.addLayer(mmMultiBand.select('mm_01'), sstVis, 'MM January');
 Map.addLayer(mmMultiBand.select('mm_07'), sstVis, 'MM July', false);
 Map.addLayer(mmm, sstVis, 'MMM');
@@ -104,26 +108,26 @@ Map.addLayer(mmm, sstVis, 'MMM');
 Export.image.toAsset({
   image: mmMultiBand.toFloat(),
   description: 'MM_Climatology_OISST_1985_2012',
-  assetId: 'MM_Climatology_OISST_1985_2012',
-  region: ROI, scale: 27830, maxPixels: 1e10
+  assetId: 'projects/oisst-dhw/assets/coral_dhw/mm_climatology',
+  region: EXPORT_BOUNDS, crs: EXPORT_CRS, crsTransform: EXPORT_CRS_TRANSFORM, maxPixels: 1e10
 });
 Export.image.toAsset({
   image: mmm.toFloat(),
   description: 'MMM_Climatology_OISST_1985_2012',
-  assetId: 'MMM_Climatology_OISST_1985_2012',
-  region: ROI, scale: 27830, maxPixels: 1e10
+  assetId: 'projects/oisst-dhw/assets/coral_dhw/mmm_climatology',
+  region: EXPORT_BOUNDS, crs: EXPORT_CRS, crsTransform: EXPORT_CRS_TRANSFORM, maxPixels: 1e10
 });
 Export.image.toDrive({
   image: mmMultiBand.toFloat(),
   description: 'MM_Climatology_Drive',
   fileNamePrefix: 'MM_Climatology_OISST_1985_2012',
-  region: ROI, scale: 27830, maxPixels: 1e10, fileFormat: 'GeoTIFF'
+  region: EXPORT_BOUNDS, crs: EXPORT_CRS, crsTransform: EXPORT_CRS_TRANSFORM, maxPixels: 1e10, fileFormat: 'GeoTIFF'
 });
 Export.image.toDrive({
   image: mmm.toFloat(),
   description: 'MMM_Climatology_Drive',
   fileNamePrefix: 'MMM_Climatology_OISST_1985_2012',
-  region: ROI, scale: 27830, maxPixels: 1e10, fileFormat: 'GeoTIFF'
+  region: EXPORT_BOUNDS, crs: EXPORT_CRS, crsTransform: EXPORT_CRS_TRANSFORM, maxPixels: 1e10, fileFormat: 'GeoTIFF'
 });
 
 print('──────────────────────────────────────────────');

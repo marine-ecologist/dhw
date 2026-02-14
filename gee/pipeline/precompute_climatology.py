@@ -8,7 +8,7 @@ Run this ONCE before deploying the Cloud Function.
 
 Usage:
     earthengine authenticate
-    earthengine set_project your-project-id
+    earthengine set_project YOUR-GEE-PROJECT
     python precompute_climatology.py
 
 Then wait for the 3 export tasks to finish in the GEE Tasks tab
@@ -21,18 +21,23 @@ import os
 import time
 
 # ── Config ───────────────────────────────────────────────────────────────────
-GEE_PROJECT = os.environ.get('GEE_PROJECT', 'your-gee-project')  # ← change
+GEE_PROJECT = os.environ.get('GEE_PROJECT', 'YOUR-GEE-PROJECT')
 ASSET_FOLDER = f'projects/{GEE_PROJECT}/assets/coral_dhw'
 
-ROI_COORDS = [141.0958, -24.70584, 153.2032, -8.926405]
+ROI_ASSET = f'projects/{GEE_PROJECT}/assets/coral_dhw/gbr_polygon'
 CLIM_START = 1985
 CLIM_END = 2012
 TARGET_YEAR = 1988.2857
-SCALE = 27830
+
+# Grid matching R terra output: 63 rows × 49 cols, 0.25° resolution
+EXPORT_CRS = 'EPSG:4326'
+EXPORT_CRS_TRANSFORM = [0.25, 0, 141, 0, -0.25, -9]
+EXPORT_BOUNDS = [141, -24.75, 153.25, -9]
 
 # ── Initialize ───────────────────────────────────────────────────────────────
 ee.Initialize(project=GEE_PROJECT)
-roi = ee.Geometry.Rectangle(ROI_COORDS)
+roi = ee.FeatureCollection(ROI_ASSET).geometry()
+export_region = ee.Geometry.Rectangle(EXPORT_BOUNDS)
 
 # Create asset folder if it doesn't exist
 try:
@@ -111,8 +116,9 @@ def export_asset(image, name, description):
         image=image.toFloat(),
         description=description,
         assetId=asset_id,
-        region=roi,
-        scale=SCALE,
+        region=export_region,
+        crs=EXPORT_CRS,
+        crsTransform=EXPORT_CRS_TRANSFORM,
         maxPixels=1e10
     )
     task.start()

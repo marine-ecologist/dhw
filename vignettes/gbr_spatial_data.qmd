@@ -1,0 +1,201 @@
+---
+title: "GBR Spatial Data"
+format: 
+  html:
+    toc: false
+    code-fold: true
+    self-contained: true
+editor: visual
+---
+
+The `download_gbr_spatial()` function returns one of four spatial datasets:
+
+```{r}
+#| message: false
+#| warning: false
+#| cache: true
+library(dhw)
+
+GBR_base <- download_gbr_spatial(return = "base")
+GBR_reefs <- download_gbr_spatial(return = "combined")
+GBR_hull <- download_gbr_spatial(return = "hull")
+GBR_outline <- download_gbr_spatial(return = "outline")
+
+```
+
+### GBR_base
+
+`return = "base"` returns the raw data downloaded from
+
+`https://nextcloud.eatlas.org.au/s/xQ8neGxxCbgWGSd/download/TS_AIMS_NESP_Torres_Strait_Features_V1b_with_GBR_Features.zip"`
+
+The dataset spans 8390 unique `LABEL_ID` including all GBR features (`FEAT_NAME` includes Bank, Reef, Terrestrial Reef, Rock, Other, Mainland, Cay, Island, Sand)
+
+```{r}
+
+GBR_base
+#unique(GBR_base$LABEL_ID) |> length()
+#unique(GBR_base$FEAT_NAME)
+
+```
+
+
+### GBR_reefs
+
+`return = "combined"` groups reefs by `LABEL_ID`, dissolves to one geometry per ID (`summarise(st_union)`), calculates polygon area (`st_area()`) for each `LABEL_ID`, and returns 4612 unique `LABEL_ID` as either polygons or multipolygons.
+
+
+```{r}
+
+GBR_reefs
+
+#unique(GBR_reefs$LABEL_ID) |> length()
+#unique(GBR_base$FEAT_NAME)
+
+```
+
+In the full GBR dataset, "LABEL_ID" is split into multiple subgroups. For example, `LABEL_ID` `09-355` includes 26 sublevels (a,b,c,d, through to a1, a0). This includes `Wapa Reef` by `LOC_NAME_S` but also `U/N Sand Bank`. With `return="combined"` all sublevels of LABEL_ID are combined to a single multipolygon which adopts the `LOC_NAME_S` (see below for `Wapa Reef` example).
+
+Non-GBR content (including Mornington, Forsyth &	South Wellesley Islands in the Gulf of Carpenteria, and all shoals `Y_COORD` < -25) and are additionally removed.
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-height: 6
+#| fig-width: 10
+library(tidyverse)
+library(sf)
+library(ggplot2)
+
+GBR_base_09355 <- GBR_base |>
+  dplyr::filter(stringr::str_detect(LABEL_ID, "^09-355"))
+
+GBR_reef_09355 <- GBR_reefs |>
+  dplyr::filter(stringr::str_detect(LABEL_ID, "^09-355"))
+
+
+library(patchwork)
+
+a <- ggplot() + theme_bw() + geom_sf(data=GBR_base_09355, aes(fill=LOC_NAME_S)) + ggtitle("return=base") + 
+  ggplot2::theme(
+  legend.position = "left",
+  legend.text  = ggplot2::element_text(size = ggplot2::rel(0.6)),
+  legend.title = ggplot2::element_text(size = ggplot2::rel(0.6)),
+  legend.key.size = grid::unit(0.25, "lines")
+)
+
+b <- ggplot() + theme_bw() + geom_sf(data=GBR_reef_09355, aes(fill=LABEL_ID)) + ggtitle("return=combined")
+
+a|b
+
+```
+
+
+### GBR_hull
+
+`return = "hull"` returns a single polygon, which is a single convex hull around all `FEAT_NAME` = "Reef", "Terrestrial Reef", "Island", "Rock", "Bank" with an additional 1km buffer. As the original file included a lake in outback Queensland the subset of `FEAT_NAME` that overlap with the `LOC_NAME_S == "Mainland (99-000)")` and non-GBR content (including Mornington, Forsyth &	South Wellesley Islands in the Gulf of Carpenteria, and `Y_COORD` < -25) and are removed prior to creating the convex hull.
+
+
+
+```{r}
+
+GBR_hull
+
+#unique(GBR_reefs$LABEL_ID) |> length()
+#unique(GBR_base$FEAT_NAME)
+
+```
+
+```{r}
+
+ggplot() + theme_bw() + geom_sf(data=GBR_hull, fill="aquamarine4", alpha=0.2)
+
+```
+
+### GBR_outline
+
+
+GBR_outline returns the Austrlian mainland via the largest area from the original `GBR_base`:  
+
+```{r}
+
+GBR_outline
+
+```
+
+```{r}
+
+ggplot() + theme_bw() + geom_sf(data=GBR_outline, fill="aquamarine2", alpha=0.2)
+
+```
+
+### Spatial verifications
+
+
+Check which `LABEL_ID` reefs in `GBR_reefs` overlap with `GBR_reefs`:
+
+```{r}
+
+GBR_reefs_chk <- GBR_reefs |>
+  sf::st_make_valid() |>
+  sf::st_transform(sf::st_crs(GBR_hull)) |>
+  dplyr::mutate(
+    within_hull = sf::st_within(geometry, sf::st_geometry(GBR_hull), sparse = FALSE)[, 1],
+    intersects_hull = sf::st_intersects(geometry, sf::st_geometry(GBR_hull), sparse = FALSE)[, 1]
+  )
+
+GBR_reefs_chk |>
+  sf::st_drop_geometry() |>
+  dplyr::count(within_hull, intersects_hull)
+
+
+```
+
+
+
+
+Check with aerial bleaching data for potential missing `LABEL_ID`
+
+
+- 1998_BerklemansGBRData.csv
+- 2002_BerklemansGBRData.csv
+- 2016_HughesGBRAerial.csv
+- 2017_HughesGBRAerial.csv
+- 2020_HughesGBRAerialwArea.csv
+- 2022_GBRMPA_GBRAerialData.csv
+- 2024GBRReefAvg_AerialBLC_Final_QC_2Apr2024.csv
+- 2025GBR_Aerial_ReefAVGBLC_QC_Final.csv
+
+
+all 1826 `LABEL_ID` from aerial surveys present in `GBR_reefs`:
+
+```{r}
+
+gbr_shape_aerial <- readRDS("/Users/rof011/GBR-dhw/datasets/gbr_shape_aerial.rds")
+
+gbr_shape_aerial |> filter(!LABEL_ID %in% GBR_reefs$LABEL_ID)
+
+
+```
+
+
+all 5497 polygons in aerial surveys present in `GBR_reefs`:
+
+```{r}
+
+gbr_shape_aerial <- readRDS("/Users/rof011/GBR-dhw/datasets/gbr_shape_aerial.rds")
+
+
+GBR_shape_aerial_chk <- gbr_shape_aerial |>
+  sf::st_make_valid() |>
+  sf::st_transform(sf::st_crs(GBR_hull)) |>
+  dplyr::mutate(
+    within_hull = sf::st_within(geometry, sf::st_geometry(GBR_hull), sparse = FALSE)[, 1],
+    intersects_hull = sf::st_intersects(geometry, sf::st_geometry(GBR_hull), sparse = FALSE)[, 1]
+  )
+
+GBR_shape_aerial_chk |>
+  sf::st_drop_geometry() |>
+  dplyr::count(within_hull, intersects_hull)
+
+```

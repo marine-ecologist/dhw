@@ -1,0 +1,83 @@
+---
+title: "Eyrie Bleaching events"
+format:
+  html:
+    embed-resources: true
+    code-fold: true       
+    code-summary: "Code"
+execute:
+  warning: false
+  message: false
+---
+
+## 
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-height: 5
+#| fig-width: 10
+
+
+devtools::load_all()
+library(terra)
+library(tidyverse)
+#library(dhw)
+
+# extract eyrie gridcell and process climatology
+OISST <- rast("/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST2_SST.tif")
+
+cell <- terra::cellFromXY(OISST, cbind(145.45406,  -14.71838))[1]
+xy   <- terra::xyFromCell(OISST, cell)
+rs   <- terra::res(OISST)
+e <- terra::ext(
+  xy[1] - rs[1]/2 + 1e-10, xy[1] + rs[1]/2 - 1e-10,
+  xy[2] - rs[2]/2 + 1e-10, xy[2] + rs[2]/2 - 1e-10
+)
+oisst_cell_ts <- terra::crop(OISST, e, snap = "in")
+eyrie_climatology <- create_climatology(oisst_cell_ts, baa = TRUE, quiet=TRUE)
+
+# set survey dates
+surveys <- 
+
+
+# plot
+eyrie_sst <- plot_sst_timeseries(eyrie_climatology, title = "Eyrie Reef",
+                    startdate = "2023-11-01", enddate = "2026-02-28", legend_position = c(0.92, 0.4)) 
+
+# add survey dates
+
+eyrie_sst +
+  ylim(22, 32) +
+  geom_vline(
+    data = tibble(date = as.Date(c("2023-12-10", "2024-03-19", "2024-09-10", "2025-03-17", "2026-01-31"))),
+    aes(xintercept = date),
+    linewidth = 1,
+    linetype = "solid",
+    alpha = 0.15,
+    color = "darkblue",
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = tibble(date = as.Date(c("2023-12-10", "2024-03-19", "2024-09-10", "2025-03-17", "2026-01-31"))) |>
+      mutate(label = format(date, "%Y-%m-%d"), y = 30.7),
+    aes(x = date, y = y, label = label),
+    angle = 90,
+    vjust = -0.2,
+    hjust = 0,
+    size = 3,
+    color = "black",
+    inherit.aes = FALSE
+  ) +
+   scale_x_date(
+    date_breaks = "1 year",
+    date_labels = "%Y"
+  ) +
+  theme(
+    panel.grid.minor.x = element_blank()
+  ) +
+  scale_y_continuous(limits=c(22,32), breaks = seq(22,32,2)) + 
+  xlab( "year")
+
+
+```

@@ -16,3 +16,7 @@
   reconstructions](https://marine-ecologist.github.io/dhw/articles/hindcast.md):
 - [Bayesian changepoint detection and
   OISST2](https://marine-ecologist.github.io/dhw/articles/changepoint.md):
+- [Coral Reef Watch Heat Stress Products in Google Earth
+  Engine](https://marine-ecologist.github.io/dhw/articles/gee_scripts.md):
+- [Automated Daily DHW
+  Pipeline](https://marine-ecologist.github.io/dhw/articles/gee_pipeline.md):

@@ -12,6 +12,7 @@ create_climatology(
   return = FALSE,
   baa = FALSE,
   save_output = NULL,
+  overwrite = TRUE,
   climatology = NULL,
   ...
 )
@@ -28,6 +29,8 @@ create_climatology(
 \item{baa}{return baa? TRUE/FALSE (speeds up processing)}
 
 \item{save_output}{save output? "folder/filename" format where "folder/filename_sst.tif", "folder/filename_dhw.tif" etc}
+
+\item{overwrite}{overwrite saved raster?}
 
 \item{climatology}{replace mmm with external climatology? link to .nc, explicit for CRW (i.e. "GBR_ct5km_climatology_v3.1.nc")}
 }

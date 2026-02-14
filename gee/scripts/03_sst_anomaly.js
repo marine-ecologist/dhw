@@ -8,11 +8,18 @@
 // ── Configuration ──────────────────────────────────────────────────────────────
 var ANALYSIS_START = '2024-01-01';
 var ANALYSIS_END   = '2024-12-31';
-var ROI = ee.Geometry.Rectangle([141.0958, -24.70584, 153.2032, -8.926405]);
+
+var MASK = ee.Image('projects/oisst-dhw/assets/coral_dhw/gbr_mask').selfMask();
+var BBOX = ee.Geometry.Rectangle([141, -24.75, 153, -8.75]);
+
+// Grid matching R gbr_mask raster: 64 rows × 48 cols, 0.25°
+var EXPORT_CRS = 'EPSG:4326';
+var EXPORT_CRS_TRANSFORM = [0.25, 0, 141, 0, -0.25, -8.75];
+var EXPORT_BOUNDS = BBOX;
 
 // ── Compute MM (memory-safe, one month at a time) ──────────────────────────────
 // Use asset instead if available:
-// var mmMultiBand = ee.Image('users/YOUR_USERNAME/MM_Climatology_OISST_1985_2012');
+// var mmMultiBand = ee.Image('projects/oisst-dhw/assets/coral_dhw/mm_climatology');
 
 var CLIM_START = 1985, CLIM_END = 2012, TARGET_YEAR = 1988.2857;
 
@@ -24,7 +31,7 @@ function computeMMForMonth(month) {
     var t1 = ee.Date.fromYMD(year, month, 1);
     var t2 = t1.advance(1, 'month');
     var meanSST = ee.ImageCollection('NOAA/CDR/OISST/V2_1')
-      .select('sst').filterDate(t1, t2).filterBounds(ROI)
+      .select('sst').filterDate(t1, t2).filterBounds(BBOX)
       .mean().multiply(0.01);
     return meanSST
       .addBands(ee.Image.constant(1).rename('constant').toFloat())
@@ -62,26 +69,24 @@ function interpolateDC(doy) {
 // Stack all 366 DC bands into one image for server-side DOY indexing
 var dcBandList = [];
 for (var d = 1; d <= 366; d++) { dcBandList.push(interpolateDC(d)); }
-var dcAllBands = ee.Image.cat(dcBandList).clip(ROI);  // band 0 = DOY 1, band 365 = DOY 366
+var dcAllBands = ee.Image.cat(dcBandList).updateMask(MASK);
 
 // ── Load analysis-period SST ───────────────────────────────────────────────────
 var oisstAnalysis = ee.ImageCollection('NOAA/CDR/OISST/V2_1')
   .select('sst')
   .filterDate(ANALYSIS_START, ANALYSIS_END)
-  .filterBounds(ROI)
+  .filterBounds(BBOX)
   .map(function(img) {
     return img.multiply(0.01).copyProperties(img, img.propertyNames());
   });
 print('Analysis SST images:', oisstAnalysis.size());
 
 // ── Compute SST Anomaly ────────────────────────────────────────────────────────
-// Use array indexing to pick the correct DC band by DOY server-side.
-
-var dcArray = dcAllBands.toArray();  // 1-D array image, length 366
+var dcArray = dcAllBands.toArray();
 
 var sstAnomalyCollection = oisstAnalysis.map(function(img) {
   var date = ee.Date(img.get('system:time_start'));
-  var doy  = date.getRelative('day', 'year').add(1).min(366);  // 1-based
+  var doy  = date.getRelative('day', 'year').add(1).min(366);
   var idx  = doy.subtract(1);
 
   var dcForDay = dcArray
@@ -94,7 +99,7 @@ var sstAnomalyCollection = oisstAnalysis.map(function(img) {
   return anomaly
     .addBands(img.rename('sst'))
     .addBands(dcForDay)
-    .clip(ROI)
+    .updateMask(MASK)
     .set('system:time_start', img.get('system:time_start'))
     .set('date', date.format('YYYY-MM-dd'));
 });
@@ -104,7 +109,7 @@ print('SST Anomaly collection:', sstAnomalyCollection.size());
 // ── Visualization ──────────────────────────────────────────────────────────────
 var anomVis = {min:-3, max:3,
   palette:['0000ff','4444ff','8888ff','ffffff','ff8888','ff4444','ff0000']};
-Map.centerObject(ROI, 5);
+Map.centerObject(BBOX, 5);
 Map.addLayer(sstAnomalyCollection.select('sst_anomaly').mean(),
   anomVis, 'Mean SST Anomaly');
 
@@ -122,5 +127,5 @@ print(ui.Chart.image.series({
 Export.image.toDrive({
   image: sstAnomalyCollection.select('sst_anomaly').mean().toFloat(),
   description: 'Mean_SST_Anomaly_2024',
-  region: ROI, scale: 27830, maxPixels: 1e10
+  region: EXPORT_BOUNDS, crs: EXPORT_CRS, crsTransform: EXPORT_CRS_TRANSFORM, maxPixels: 1e10
 });

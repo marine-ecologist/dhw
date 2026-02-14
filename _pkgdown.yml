@@ -70,6 +70,8 @@ navbar:
           href: articles/hindcast.html
         - text: "7. Bayesian changepoint detection and DHW"
           href: articles/changepoint.html
+        - text: "8. Validating GBR spatial datasets"
+          href: articles/gbr_spatial_data.html
     GEE:
       text: GEE
       menu:
@@ -132,5 +134,6 @@ articles:
   - dhw_extended
   - hindcast
   - changepoint
+  - gbr_spatial_data
   - gee_scripts
   - gee_pipeline

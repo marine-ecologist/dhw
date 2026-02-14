@@ -63,9 +63,9 @@ process_year <- function(year_dir, polygon, crop, mask, downsample, res, variabl
 
     r <- r[[varname]]
     base::names(r) <- base::as.Date(terra::time(r))
-    poly_t <- terra::vect(sf::st_transform(polygon, terra::crs(r)))
-    if (isTRUE(mask)) r <- terra::mask(r, poly_t)
-    if (isTRUE(crop)) r <- terra::crop(r, poly_t)
+    poly_t <- terra::vect(sf::st_transform(polygon , terra::crs(r)))
+    if (isTRUE(crop)) r <- terra::crop(r, poly_t, snap = "out")
+    if (isTRUE(mask)) r <- terra::mask(r, poly_t, touches = TRUE)
     if (isTRUE(downsample)) {
       target <- terra::rast(terra::ext(r), resolution = res, crs = terra::crs(r))
       r <- terra::resample(r, target, method = "bilinear")

@@ -35,7 +35,7 @@ The function returns either "hull" (convex hull around reefs), "base" (basic wit
 
 ```{r, eval=TRUE}
 
-#gbr_reefs <- download_gbr_spatial(return="combined")
+gbr_reefs_combined <- download_gbr_spatial(return="combined")
 gbr_reefs <- download_gbr_spatial(return="base")
 
 gbr_reefs
@@ -145,9 +145,9 @@ Alternatively, `cdo` offers a much faster workflow using `cdo mergetime *.nc out
 ```{r, eval=FALSE}
 
 download_OISST(url = "https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/",
-               start_date = "2025-03-18",
-               end_date = "2025-03-31",
-               dest_dir = "/Volumes/Extreme_SSD/dhw/OISST/2025/",
+               start_date = "2025-01-01",
+               end_date = "2026-01-31",
+               dest_dir = "/Volumes/Extreme_SSD/dhw/OISST/",
                mc.cores = 10)
 
 
@@ -161,7 +161,7 @@ the full global dataset is 26.39GB in individual \~10-11MB .nc files.
 
 process_OISST(input = "/Volumes/Extreme_SSD/dhw/OISST/",
               polygon = GBR_hull, crs = "EPSG:7844",
-              combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_2025.rds",
+              combinedfilename = "/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_2026.rds",
               crop=TRUE, mask=TRUE, downsample=FALSE, mc.cores=10)
 
 terra::rast("/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full_2025.rds")
@@ -183,7 +183,6 @@ download_ERA5(
     timeout=60,
     dest_dir = "/Volumes/Extreme_SSD/dhw/ERA5/"
   )
-  
   
 
 

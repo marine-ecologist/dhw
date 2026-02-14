@@ -6,11 +6,13 @@ articles:
   changepoint: changepoint.html
   dhw_extended: dhw_extended.html
   extracting_data: extracting_data.html
+  gbr_spatial_data: gbr_spatial_data.html
+  gee_pipeline: gee_pipeline.html
   gee_scripts: gee_scripts.html
   hindcast: hindcast.html
   validating_climatologies: validating_climatologies.html
   visualising_outputs: visualising_outputs.html
-last_built: 2026-02-13T05:57Z
+last_built: 2026-02-16T12:32Z
 urls:
   reference: https://marine-ecologist.github.io/dhw/reference
   article: https://marine-ecologist.github.io/dhw/articles

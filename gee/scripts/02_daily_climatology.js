@@ -11,11 +11,21 @@
 // =============================================================================
 
 // ── Configuration ──────────────────────────────────────────────────────────────
-var ROI = ee.Geometry.Rectangle([141.0958, -24.70584, 153.2032, -8.926405]);
+var MASK = ee.Image('projects/oisst-dhw/assets/coral_dhw/gbr_mask').selfMask();
+var BBOX = ee.Geometry.Rectangle([141, -24.75, 153, -8.75]);
+
+// Grid matching R gbr_mask raster: 64 rows × 48 cols, 0.25°
+var EXPORT_CRS = 'EPSG:4326';
+var EXPORT_CRS_TRANSFORM = [0.25, 0, 141, 0, -0.25, -8.75];
+var EXPORT_BOUNDS = BBOX;
 
 // ── Load or compute MM ─────────────────────────────────────────────────────────
-// OPTION A – from asset (recommended; uncomment and set your path):
-// var mmMultiBand = ee.Image('users/YOUR_USERNAME/MM_Climatology_OISST_1985_2012');
+// OPTION A – from asset (recommended; uncomment):
+// var mmMultiBand = ee.Image('projects/oisst-dhw/assets/coral_dhw/mm_climatology');
+// var mmBands = [];
+// for (var m = 1; m <= 12; m++) {
+//   mmBands.push(mmMultiBand.select('mm_' + (m < 10 ? '0' + m : m)).rename('mm_sst'));
+// }
 
 // OPTION B – recompute inline (memory-safe, one month at a time):
 var CLIM_START = 1985, CLIM_END = 2012, TARGET_YEAR = 1988.2857;
@@ -28,7 +38,7 @@ function computeMMForMonth(month) {
     var t1 = ee.Date.fromYMD(year, month, 1);
     var t2 = t1.advance(1, 'month');
     var meanSST = ee.ImageCollection('NOAA/CDR/OISST/V2_1')
-      .select('sst').filterDate(t1, t2).filterBounds(ROI)
+      .select('sst').filterDate(t1, t2).filterBounds(BBOX)
       .mean().multiply(0.01);
     return meanSST
       .addBands(ee.Image.constant(1).rename('constant').toFloat())
@@ -78,13 +88,13 @@ for (var d = 1; d <= 366; d++) {
   var pad = d < 100 ? (d < 10 ? '00' : '0') : '';
   dcBandList.push(interpolateDC(d).rename('dc_' + pad + d));
 }
-var dcImage = ee.Image.cat(dcBandList).clip(ROI);
+var dcImage = ee.Image.cat(dcBandList).updateMask(MASK);
 print('Daily Climatology image (366 bands):', dcImage);
 
 // ── Visualization ──────────────────────────────────────────────────────────────
 var sstVis = {min:20, max:32,
   palette:['0000ff','00ffff','00ff00','ffff00','ff8800','ff0000']};
-Map.centerObject(ROI, 5);
+Map.centerObject(BBOX, 5);
 Map.addLayer(dcImage.select('dc_015'), sstVis, 'DC Jan 15');
 Map.addLayer(dcImage.select('dc_196'), sstVis, 'DC Jul 15', false);
 
@@ -92,8 +102,8 @@ Map.addLayer(dcImage.select('dc_196'), sstVis, 'DC Jul 15', false);
 Export.image.toAsset({
   image: dcImage.toFloat(),
   description: 'Daily_Climatology_OISST_366bands',
-  assetId: 'Daily_Climatology_OISST_366bands',
-  region: ROI, scale: 27830, maxPixels: 1e10
+  assetId: 'projects/oisst-dhw/assets/coral_dhw/daily_climatology',
+  region: EXPORT_BOUNDS, crs: EXPORT_CRS, crsTransform: EXPORT_CRS_TRANSFORM, maxPixels: 1e10
 });
 
 print('Export the 366-band DC asset for use in Scripts 3–5.');

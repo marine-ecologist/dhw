@@ -7,15 +7,15 @@ set -euo pipefail
 
 # ═══════════════════════════════════════════════
 # Set these via environment variables, e.g.:
-#   export GEE_PROJECT="oisst-dhw"
-#   export GCS_BUCKET="coral-dhw-gbr"
+#   export GEE_PROJECT="YOUR-GEE-PROJECT"
+#   export GCS_BUCKET="YOUR-GCS-BUCKET"
 #   ./deploy.sh
 # ═══════════════════════════════════════════════
-PROJECT_ID="${GEE_PROJECT:?Set GEE_PROJECT first, e.g. export GEE_PROJECT=oisst-dhw}"
+PROJECT_ID="${GEE_PROJECT:?Set GEE_PROJECT first, e.g. export GEE_PROJECT=YOUR-GEE-PROJECT}"
 # GCP project IDs must be lowercase
 PROJECT_ID=$(echo "$PROJECT_ID" | tr '[:upper:]' '[:lower:]')
 REGION="australia-southeast1"
-BUCKET="${GCS_BUCKET:-coral-dhw-gbr}"
+BUCKET="${GCS_BUCKET:-YOUR-GCS-BUCKET}"
 SA_NAME="dhw-pipeline"
 # ═══════════════════════════════════════════════
 
@@ -56,10 +56,17 @@ bq mk --dataset --location=$REGION \
 
 bq mk --table ${PROJECT_ID}:coral_dhw.daily_summary \
   date:DATE,\
-sst_mean:FLOAT,sst_std:FLOAT,sst_ci95_lower:FLOAT,sst_ci95_upper:FLOAT,sst_n_pixels:INTEGER,\
-anomaly_mean:FLOAT,anomaly_std:FLOAT,anomaly_ci95_lower:FLOAT,anomaly_ci95_upper:FLOAT,anomaly_n_pixels:INTEGER,\
-dhw_mean:FLOAT,dhw_std:FLOAT,dhw_ci95_lower:FLOAT,dhw_ci95_upper:FLOAT,dhw_n_pixels:INTEGER \
+sst_mean:FLOAT,sst_std:FLOAT,sst_ci95_lower:FLOAT,sst_ci95_upper:FLOAT,sst_n_pixels:INTEGER,sst_n_reefs:INTEGER,\
+sst_anomaly_mean:FLOAT,sst_anomaly_std:FLOAT,sst_anomaly_ci95_lower:FLOAT,sst_anomaly_ci95_upper:FLOAT,sst_anomaly_n_pixels:INTEGER,sst_anomaly_n_reefs:INTEGER,\
+hotspot_mean:FLOAT,hotspot_std:FLOAT,hotspot_ci95_lower:FLOAT,hotspot_ci95_upper:FLOAT,hotspot_n_pixels:INTEGER,hotspot_n_reefs:INTEGER,\
+dhw_mean:FLOAT,dhw_std:FLOAT,dhw_ci95_lower:FLOAT,dhw_ci95_upper:FLOAT,dhw_n_pixels:INTEGER,dhw_n_reefs:INTEGER \
   2>/dev/null || echo "Table exists."
+
+bq mk --table ${PROJECT_ID}:coral_dhw.reef_daily \
+  date:DATE,\
+LABEL_ID:STRING,GBR_NAME:STRING,\
+sst:FLOAT,sst_anomaly:FLOAT,hotspot:FLOAT,dhw:FLOAT \
+  2>/dev/null || echo "Reef table exists."
 
 echo "=== 5. Pub/Sub topic ==="
 gcloud pubsub topics create dhw-daily-trigger 2>/dev/null \
@@ -87,7 +94,7 @@ gcloud functions deploy daily-dhw-pipeline \
   --trigger-topic=dhw-daily-trigger \
   --memory=512MB \
   --timeout=300s \
-  --set-env-vars="GCS_BUCKET=${BUCKET},GEE_PROJECT=${PROJECT_ID},BQ_TABLE=${PROJECT_ID}.coral_dhw.daily_summary" \
+  --set-env-vars="GCS_BUCKET=${BUCKET},GEE_PROJECT=${PROJECT_ID},BQ_TABLE=${PROJECT_ID}.coral_dhw.daily_summary,BQ_REEF_TABLE=${PROJECT_ID}.coral_dhw.reef_daily" \
   --service-account=$SA_EMAIL
 
 echo "=== 7. Cloud Scheduler (daily 12:00 UTC) ==="

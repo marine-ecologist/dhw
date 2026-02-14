@@ -39,7 +39,7 @@ calculate_baa <- function(hs, dhw) {
     result <- rep(NA, length(hs))
 
     result[hs <= 0] <- 0  # No Stress
-    result[hs > 0 & hs < 1 & dhw < 4] <- 1  # Bleaching Watch
+    result[hs > 0 & hs < 1 & dhw < 4] <- 1  # Bleaching Watchx
     result[hs >= 1 & dhw < 4] <- 2  # Bleaching Warning
     result[hs >= 1 & dhw >= 4 & dhw < 8] <- 3  # Bleaching Alert Level 1
     result[hs >= 1 & dhw >= 8 & dhw < 12] <- 4 # Bleaching Alert Level 2

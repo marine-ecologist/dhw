@@ -14,7 +14,14 @@
 // ── Configuration ──────────────────────────────────────────────────────────────
 var DHW_START = '2024-01-01';
 var DHW_END   = '2024-12-31';
-var ROI = ee.Geometry.Rectangle([141.0958, -24.70584, 153.2032, -8.926405]);
+
+var MASK = ee.Image('projects/oisst-dhw/assets/coral_dhw/gbr_mask').selfMask();
+var BBOX = ee.Geometry.Rectangle([141, -24.75, 153, -8.75]);
+
+// Grid matching R gbr_mask raster: 64 rows × 48 cols, 0.25°
+var EXPORT_CRS = 'EPSG:4326';
+var EXPORT_CRS_TRANSFORM = [0.25, 0, 141, 0, -0.25, -8.75];
+var EXPORT_BOUNDS = BBOX;
 
 var DHW_WINDOW   = 84;   // days
 var HS_THRESHOLD = 1;    // °C
@@ -25,7 +32,7 @@ print('Data start (incl. 84-day buffer):', dataStart.format('YYYY-MM-dd'));
 
 // ── Compute MMM (memory-safe) ──────────────────────────────────────────────────
 // Use asset instead if available:
-// var mmm = ee.Image('users/YOUR_USERNAME/MMM_Climatology_OISST_1985_2012');
+// var mmm = ee.Image('projects/oisst-dhw/assets/coral_dhw/mmm_climatology');
 
 var CLIM_START = 1985, CLIM_END = 2012, TARGET_YEAR = 1988.2857;
 
@@ -37,7 +44,7 @@ function computeMMForMonth(month) {
     var t1 = ee.Date.fromYMD(year, month, 1);
     var t2 = t1.advance(1, 'month');
     var meanSST = ee.ImageCollection('NOAA/CDR/OISST/V2_1')
-      .select('sst').filterDate(t1, t2).filterBounds(ROI)
+      .select('sst').filterDate(t1, t2).filterBounds(BBOX)
       .mean().multiply(0.01);
     return meanSST
       .addBands(ee.Image.constant(1).rename('constant').toFloat())
@@ -55,7 +62,7 @@ function computeMMForMonth(month) {
 
 var mmImages = [];
 for (var m = 1; m <= 12; m++) { mmImages.push(computeMMForMonth(m)); }
-var mmm = ee.Image.cat(mmImages).reduce(ee.Reducer.max()).rename('mmm_sst').clip(ROI);
+var mmm = ee.Image.cat(mmImages).reduce(ee.Reducer.max()).rename('mmm_sst').updateMask(MASK);
 print('MMM computed.');
 
 // ── Load SST for full period (analysis + 84-day buffer) ────────────────────────
@@ -63,7 +70,7 @@ var dataEnd = ee.Date(DHW_END).advance(1, 'day');
 var oisstFull = ee.ImageCollection('NOAA/CDR/OISST/V2_1')
   .select('sst')
   .filterDate(dataStart, dataEnd)
-  .filterBounds(ROI)
+  .filterBounds(BBOX)
   .map(function(img) {
     return img.multiply(0.01).copyProperties(img, img.propertyNames());
   });
@@ -71,7 +78,7 @@ print('SST images loaded (incl. buffer):', oisstFull.size());
 
 // ── Compute daily HotSpot ──────────────────────────────────────────────────────
 var hsCollection = oisstFull.map(function(img) {
-  return img.subtract(mmm).max(0).rename('hotspot').clip(ROI)
+  return img.subtract(mmm).max(0).rename('hotspot').updateMask(MASK)
     .set('system:time_start', img.get('system:time_start'));
 });
 
@@ -80,7 +87,6 @@ function computeDHW(targetDate) {
   targetDate = ee.Date(targetDate);
   var windowStart = targetDate.advance(-(DHW_WINDOW - 1), 'day');
 
-  // 84-day window of HS values
   var windowHS = hsCollection.filterDate(windowStart, targetDate.advance(1, 'day'));
 
   // Zero out HS < 1 °C (only HS ≥ 1 contributes)
@@ -89,16 +95,12 @@ function computeDHW(targetDate) {
   });
 
   // Sum and convert degree-days → degree-weeks
-  return thresholded.sum().divide(7).rename('dhw').clip(ROI)
+  return thresholded.sum().divide(7).rename('dhw').updateMask(MASK)
     .set('system:time_start', targetDate.millis())
     .set('date', targetDate.format('YYYY-MM-dd'));
 }
 
 // ── Compute DHW for every day in the analysis period ───────────────────────────
-// NOTE: This creates ~365 derived images; each triggers an 84-image sum.
-// For very long periods or global runs, process in monthly batches or
-// export HS first and compute DHW offline.
-
 var dhwStartDate = ee.Date(DHW_START);
 var nDays = ee.Date(DHW_END).difference(dhwStartDate, 'day').add(1).round();
 print('DHW output days:', nDays);
@@ -116,7 +118,7 @@ print('DHW collection:', dhwCollection.size());
 var dhwVis = {min:0, max:16,
   palette:['ffffff','ffffcc','ffff00','ffcc00','ff8800',
            'ff4400','ff0000','cc0000','880000']};
-Map.centerObject(ROI, 5);
+Map.centerObject(BBOX, 5);
 
 var maxDHW = dhwCollection.select('dhw').max();
 Map.addLayer(maxDHW, dhwVis, 'Max DHW 2024');
@@ -141,7 +143,7 @@ Export.image.toDrive({
   image: maxDHW.toFloat(),
   description: 'Max_DHW_2024',
   fileNamePrefix: 'Max_DHW_2024',
-  region: ROI, scale: 27830, maxPixels: 1e10
+  region: EXPORT_BOUNDS, crs: EXPORT_CRS, crsTransform: EXPORT_CRS_TRANSFORM, maxPixels: 1e10
 });
 
 // Optional: export a specific date
@@ -150,7 +152,7 @@ Export.image.toDrive({
   image: computeDHW(ee.Date(singleDate)).toFloat(),
   description: 'DHW_' + singleDate.replace(/-/g,''),
   fileNamePrefix: 'DHW_' + singleDate.replace(/-/g,''),
-  region: ROI, scale: 27830, maxPixels: 1e10
+  region: EXPORT_BOUNDS, crs: EXPORT_CRS, crsTransform: EXPORT_CRS_TRANSFORM, maxPixels: 1e10
 });
 
 print('──────────────────────────────────────────────────');

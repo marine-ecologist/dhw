@@ -4,7 +4,13 @@
 \alias{plot_sst_timeseries}
 \title{Plot seasonal SST vs. MMM with bleaching status}
 \usage{
-plot_sst_timeseries(input, targetyear)
+plot_sst_timeseries(
+  input,
+  startdate,
+  enddate,
+  title = "",
+  legend_position = c(0.95, 0.4)
+)
 }
 \arguments{
 \item{input}{A list containing at least these \code{terra::SpatRaster} elements:
@@ -16,8 +22,13 @@ plot_sst_timeseries(input, targetyear)
 }
 Typically this is the output from your climatology pipeline.}
 
-\item{targetyear}{Integer target year for the season window (plots Nov of
-\code{targetyear-1} through Jul of \code{targetyear}).}
+\item{startdate}{start date for timeseries}
+
+\item{enddate}{end date for timeseries}
+
+\item{title}{legend title}
+
+\item{legend_position}{legend position from ggplot standard}
 }
 \value{
 A \code{ggplot2} object.
@@ -30,7 +41,7 @@ bottom bar indicating NOAA-style bleaching alert status derived from
 }
 \examples{
 \dontrun{
-p <- plot_year(ningaloo_climatology, targetyear = 2025)
+p <- plot_sst_timeseries(eyrie_climatology, startdate = "2023-11-01", enddate = "2026-02-28")
 print(p)
 }
 }

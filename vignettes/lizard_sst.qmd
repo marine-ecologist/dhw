@@ -1,0 +1,103 @@
+---
+title: "Eyrie Bleaching events"
+format:
+  html:
+    embed-resources: true
+    code-fold: true       
+    code-summary: "Code"
+execute:
+  warning: false
+  message: false
+---
+
+## 
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-height: 5
+#| fig-width: 10
+
+
+devtools::load_all()
+library(terra)
+library(tidyverse)
+#library(dhw)
+
+
+climatology_lonlat <- function(lon,lat){
+
+  OISST <- rast("~/dhw/code/GBR_OISST_SST.tif")
+
+  cell <- terra::cellFromXY(OISST, cbind(lon,lat))[1]
+  xy   <- terra::xyFromCell(OISST, cell)
+  rs   <- terra::res(OISST)
+  e <- terra::ext(
+    xy[1] - rs[1]/2 + 1e-10, xy[1] + rs[1]/2 - 1e-10,
+    xy[2] - rs[2]/2 + 1e-10, xy[2] + rs[2]/2 - 1e-10
+  )
+  oisst_cell_ts <- terra::crop(OISST, e, snap = "in")
+  create_climatology(oisst_cell_ts, baa = TRUE, quiet=TRUE)
+
+}
+
+# no name: lon = 145.454062, lat = -14.645561,
+# palfrey: lon = 145.454062, lat = -14.645561
+# np:  lon = 145.454062, lat = -14.645561
+
+palfrey_climatology <- climatology_lonlat(145.447680,  -14.699823)
+noname_climatology <- climatology_lonlat(145.642007,  -14.629980)
+northpoint_climatology <- climatology_lonlat(145.454554,  -14.645405)
+
+
+noname_sst <- dhw::as_climatology_df(noname_climatology) |> 
+  filter(time > as.Date("2023-10-01") & time < as.Date("2026-02-28"))
+
+
+palfrey_sst <- plot_sst_timeseries(
+  palfrey_climatology,
+  title = "",
+  startdate = "2023-10-01",
+  enddate   = "2026-02-28",
+  legend_position = c(0.92, 0.4)
+)
+
+vlines_df <- tibble(
+  date = as.Date(c("2024-01-01", "2025-01-01", "2026-01-01")),
+  label = c("2024", "2025", "2026"),
+  y = 30.75
+)
+
+labels_df <- tibble(
+  date = as.Date(c("2024-01-22", "2025-01-22", "2026-01-22")),
+  label = c("2024", "2025", "2026"),
+  y = 30.9
+)
+
+
+palfrey_sst +
+  geom_vline(
+    data = vlines_df,
+    aes(xintercept = date),
+    linewidth = 1,
+    linetype = "solid",
+    alpha = 0.15,
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = labels_df,
+    aes(x = date, y = y, label = label),
+    vjust = 0,
+    size = 3.5,
+    inherit.aes = FALSE
+  ) +
+  geom_line(
+    data = noname_sst,
+    aes(time, sst),
+    color = "black",
+    linewidth = 0.5,
+    linetype = "dotted"
+  )
+
+
+```

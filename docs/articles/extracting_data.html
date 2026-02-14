@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">dhw</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,6 +51,7 @@
     <li><a class="dropdown-item" href="../articles/dhw_extended.html">5. Extending the DHW metric</a></li>
     <li><a class="dropdown-item" href="../articles/hindcast.html">6. Hindcasting DHW records</a></li>
     <li><a class="dropdown-item" href="../articles/changepoint.html">7. Bayesian changepoint detection and DHW</a></li>
+    <li><a class="dropdown-item" href="../articles/gbr_spatial_data.html">8. Validating GBR spatial datasets</a></li>
   </ul>
 </li>
 <li class="nav-item dropdown">
@@ -99,7 +100,7 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://marine-ecologist.github.io/dhw/">dhw</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: replacing previous import 'terra::quantile' by 'stats::quantile' when</span></span>
 <span><span class="co">#&gt; loading 'dhw'</span></span>
-<span><span class="co">#&gt;  library(dhw) dev v1.4.0</span></span>
+<span><span class="co">#&gt;  library(dhw) dev v2.0.0</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/" class="external-link">sf</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Linking to GEOS 3.13.0, GDAL 3.8.5, PROJ 9.5.1; sf_use_s2() is TRUE</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
@@ -148,7 +149,9 @@ Torres Strait Version 1b (NESP TWQ 3.13, AIMS, TSRA, GBRMPA)</a></p>
 (basic with no changes), or “combined” (polygons merged to reef ID)</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#gbr_reefs &lt;- download_gbr_spatial(return="combined")</span></span>
+<span><span class="va">gbr_reefs_combined</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/download_gbr_spatial.html">download_gbr_spatial</a></span><span class="op">(</span>return<span class="op">=</span><span class="st">"combined"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Downloading spatial data...</span></span>
+<span><span class="co">#&gt; Reading and transforming shapefile...</span></span>
 <span><span class="va">gbr_reefs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/download_gbr_spatial.html">download_gbr_spatial</a></span><span class="op">(</span>return<span class="op">=</span><span class="st">"base"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Downloading spatial data...</span></span>
 <span><span class="co">#&gt; Reading and transforming shapefile...</span></span>
@@ -333,9 +336,9 @@ remapbil sets to the extent (bbox).</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/download_OISST.html">download_OISST</a></span><span class="op">(</span>url <span class="op">=</span> <span class="st">"https://www.ncei.noaa.gov/data/sea-surface-temperature-optimum-interpolation/v2.1/access/avhrr/"</span>,</span>
-<span>               start_date <span class="op">=</span> <span class="st">"2025-03-18"</span>,</span>
-<span>               end_date <span class="op">=</span> <span class="st">"2025-03-31"</span>,</span>
-<span>               dest_dir <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/OISST/2025/"</span>,</span>
+<span>               start_date <span class="op">=</span> <span class="st">"2025-01-01"</span>,</span>
+<span>               end_date <span class="op">=</span> <span class="st">"2026-01-31"</span>,</span>
+<span>               dest_dir <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/OISST/"</span>,</span>
 <span>               mc.cores <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <p>the full global dataset is 26.39GB in individual ~10-11MB .nc
 files.</p>
@@ -350,7 +353,7 @@ processing 15918 files across 10 cores now takes 88 seconds</p>
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/process_OISST.html">process_OISST</a></span><span class="op">(</span>input <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/OISST/"</span>,</span>
 <span>              polygon <span class="op">=</span> <span class="va">GBR_hull</span>, crs <span class="op">=</span> <span class="st">"EPSG:7844"</span>,</span>
-<span>              combinedfilename <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_2025.rds"</span>,</span>
+<span>              combinedfilename <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_2026.rds"</span>,</span>
 <span>              crop<span class="op">=</span><span class="cn">TRUE</span>, mask<span class="op">=</span><span class="cn">TRUE</span>, downsample<span class="op">=</span><span class="cn">FALSE</span>, mc.cores<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">terra</span><span class="fu">::</span><span class="fu"><a href="https://rspatial.github.io/terra/reference/rast.html" class="external-link">rast</a></span><span class="op">(</span><span class="st">"/Volumes/Extreme_SSD/dhw/summaries/GBR_OISST_full_2025.rds"</span><span class="op">)</span></span>
@@ -379,7 +382,6 @@ outputs to a single <code>rast</code> file.</p>
 <span>    timeout<span class="op">=</span><span class="fl">60</span>,</span>
 <span>    dest_dir <span class="op">=</span> <span class="st">"/Volumes/Extreme_SSD/dhw/ERA5/"</span></span>
 <span>  <span class="op">)</span></span>
-<span>  </span>
 <span>  </span>
 <span></span>
 <span></span>

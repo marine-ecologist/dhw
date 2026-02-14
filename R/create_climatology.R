@@ -22,6 +22,7 @@
 #' @param return return output TRUE/FALSE
 #' @param baa return baa? TRUE/FALSE (speeds up processing)
 #' @param save_output save output? "folder/filename" format where "folder/filename_sst.tif", "folder/filename_dhw.tif" etc
+#' @param overwrite overwrite saved raster?
 #' @param climatology replace mmm with external climatology? link to .nc, explicit for CRW (i.e. "GBR_ct5km_climatology_v3.1.nc")
 #' @returns output list (see above for details)
 #' @examples
@@ -29,7 +30,7 @@
 #' output <- create_climatology("crw.nc")
 #' }
 #' @export
-create_climatology <- function(sst_file, anomaly=1, window = 84, quiet = FALSE, return=FALSE, baa = FALSE, save_output=NULL, climatology=NULL, ...) {
+create_climatology <- function(sst_file, anomaly=1, window = 84, quiet = FALSE, return=FALSE, baa = FALSE, save_output=NULL, overwrite=TRUE, climatology=NULL, ...) {
   if (!quiet) {
   cat("--- create_climatology ---\n")
   }
@@ -133,15 +134,15 @@ create_climatology <- function(sst_file, anomaly=1, window = 84, quiet = FALSE, 
 
 
   if (!is.null(save_output)){
-    terra::writeRaster(sst_file, paste0(save_output, "_sst.tif"), overwrite=TRUE)
-    terra::writeRaster(mm_rast, paste0(save_output, "_mm.tif"), overwrite=TRUE)
-    terra::writeRaster(mmm_rast, paste0(save_output, "_mmm.tif"), overwrite=TRUE)
-    terra::writeRaster(daily_climatology_rast, paste0(save_output, "_climatology.tif"), overwrite=TRUE)
-    terra::writeRaster(anomaly_rast, paste0(save_output, "_anomaly.tif"), overwrite=TRUE)
-    terra::writeRaster(hotspots_rast, paste0(save_output, "_hotspots.tif"), overwrite=TRUE)
-    terra::writeRaster(dhw_rast, paste0(save_output, "_dhw.tif"), overwrite=TRUE)
+    terra::writeRaster(sst_file, paste0(save_output, "_sst.tif"), overwrite=overwrite)
+    terra::writeRaster(mm_rast, paste0(save_output, "_mm.tif"), overwrite=overwrite)
+    terra::writeRaster(mmm_rast, paste0(save_output, "_mmm.tif"), overwrite=overwrite)
+    terra::writeRaster(daily_climatology_rast, paste0(save_output, "_climatology.tif"), overwrite=overwrite)
+    terra::writeRaster(anomaly_rast, paste0(save_output, "_anomaly.tif"), overwrite=overwrite)
+    terra::writeRaster(hotspots_rast, paste0(save_output, "_hotspots.tif"), overwrite=overwrite)
+    terra::writeRaster(dhw_rast, paste0(save_output, "_dhw.tif"), overwrite=overwrite)
     if (isTRUE(baa)){
-      terra::writeRaster(baa_rast, paste0(save_output, "_baa.tif"))
+      terra::writeRaster(baa_rast, paste0(save_output, "_baa.tif"), overwrite=overwrite)
     }
 
   }

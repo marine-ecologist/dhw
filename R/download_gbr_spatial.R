@@ -63,6 +63,10 @@ download_gbr_spatial <- function(return="base", crs = 4283) {
 
     label_ids <- gbr_files %>%
       dplyr::filter(FEAT_NAME %in% c("Reef", "Terrestrial Reef", "Island", "Rock", "Bank")) %>% # expanded to include island/rock/bank to match GBRMPA aerial surveys
+      dplyr::filter(!LABEL_ID %in% c("16-115", "16-116", "16-117", "24-010", "24-011", "24-012")) |>
+      dplyr::filter(!stringr::str_detect(LABEL_ID, "^25-")) |>
+      dplyr::filter(!stringr::str_detect(LABEL_ID, "^26-")) |>
+      dplyr::filter(!stringr::str_detect(LABEL_ID, "^27-")) |>
       as.data.frame() %>%
       dplyr::select(LABEL_ID, GBR_NAME, SHAPE_AREA) %>%
       dplyr::group_by(LABEL_ID) %>%
@@ -76,6 +80,7 @@ download_gbr_spatial <- function(return="base", crs = 4283) {
       dplyr::summarize(geometry = sf::st_union(geometry)) %>%
       dplyr::ungroup() %>%
       dplyr::left_join(label_ids, by="LABEL_ID") %>%
+      dplyr::filter(LABEL_ID %in% label_ids$LABEL_ID) %>%
       dplyr::mutate(area = sf::st_area(.))%>%
       mutate(
         GBR_NAME = stringr::str_remove(GBR_NAME, " \\(Lagoon\\)") # fix LIRS
@@ -88,7 +93,11 @@ download_gbr_spatial <- function(return="base", crs = 4283) {
 
     gbr_hull <- gbr_shape %>%
       sf::st_make_valid() %>%
-      dplyr::filter(FEAT_NAME %in% c("Reef", "Terrestrial Reef")) %>%
+      #dplyr::filter(FEAT_NAME %in% c("Reef", "Terrestrial Reef")) %>%
+      dplyr::filter(FEAT_NAME %in% c("Reef", "Terrestrial Reef", "Island", "Rock", "Bank")) %>% # expanded to include island/rock/bank to match GBRMPA aerial surveys
+      dplyr::filter(!LABEL_ID %in% c("16-115", "16-116", "16-117", "24-010", "24-011", "24-012")) |>
+      dplyr::filter(!stringr::str_detect(LABEL_ID, "^25-")) |>
+      dplyr::filter(Y_COORD > -25) |>
       concaveman::concaveman() %>%
       sf::st_make_valid() %>%
       sf::st_buffer(1000) %>%

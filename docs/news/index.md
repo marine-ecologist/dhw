@@ -1,5 +1,7 @@
 # Changelog
 
+## dhw 2.0.0
+
 ## dhw 1.4.0
 
 ## dhw 1.3.0
